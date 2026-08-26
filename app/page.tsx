@@ -1,10 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { event } from "./data/event";
 import { speakers } from "./data/speakers";
 import { sponsorTiers } from "./data/sponsors";
 import SectionHeading from "./components/SectionHeading";
 import SpeakerCard from "./components/SpeakerCard";
-import { PalmFrond, WaveDivider } from "./components/motifs";
+import { WaveDivider } from "./components/motifs";
 
 export default function Home() {
   const featuredSpeakers = speakers.slice(0, 3);
@@ -13,7 +14,24 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <PalmFrond className="pointer-events-none absolute -right-8 -top-8 h-64 w-64 text-primary-foreground/10 sm:h-96 sm:w-96" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/header_background_1.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="hidden object-cover sm:block"
+          />
+          <Image
+            src="/images/hero-dancer.webp"
+            alt=""
+            width={384}
+            height={352}
+            priority
+            className="pointer-events-none absolute bottom-0 left-0 hidden h-auto w-40 sm:block sm:w-56 lg:w-72"
+          />
+        </div>
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:py-32">
           <span className="w-fit rounded-full bg-accent px-4 py-1 text-sm font-semibold text-accent-foreground">
             {event.date} &middot; {event.location}
@@ -42,7 +60,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <WaveDivider className="block h-10 w-full sm:h-16" color="var(--background)" />
+        <WaveDivider className="relative z-10 block h-10 w-full sm:h-16" color="var(--background)" />
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
