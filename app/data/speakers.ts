@@ -8,7 +8,7 @@ export type Speaker = {
   color: string;
 };
 
-const avatarPalette = ["#101a33", "#d9182e", "#0f766e", "#b45309", "#1d4ed8", "#7c3aed"];
+const avatarPalette = ["#1f4d46", "#c75b39", "#d9a441", "#4c7a5e", "#2b6cb0", "#8b5cf6"];
 
 const rawSpeakers: Omit<Speaker, "color">[] = [
   {

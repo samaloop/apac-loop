@@ -1,3 +1,5 @@
+import { FrangipaniIcon } from "./motifs";
+
 type SectionHeadingProps = {
   eyebrow?: string;
   title: string;
@@ -20,7 +22,8 @@ export default function SectionHeading({
       }`}
     >
       {eyebrow && (
-        <span className="text-sm font-semibold uppercase tracking-wide text-accent">
+        <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent">
+          <FrangipaniIcon className="h-4 w-4" />
           {eyebrow}
         </span>
       )}

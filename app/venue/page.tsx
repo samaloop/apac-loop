@@ -16,7 +16,7 @@ export default function VenuePage() {
         title="Where to be, and what to do while you're here"
       />
 
-      <div className="flex flex-col gap-4 rounded-2xl bg-surface-muted p-8">
+      <div className="flex flex-col gap-4 rounded-3xl bg-surface-muted p-8">
         <h3 className="text-xl font-semibold text-foreground">{venue.name}</h3>
         <p className="text-sm font-medium text-accent">{venue.address}</p>
         <p className="text-sm leading-6 text-foreground/70">{venue.description}</p>

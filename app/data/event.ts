@@ -1,11 +1,11 @@
 export const event = {
-  name: "Loop Coaching Summit 2026",
-  tagline: "Coaching for a Thriving Tomorrow",
-  organizer: "Loop Institute of Coaching",
-  date: "22–23 September 2026",
-  location: "Nusa Dua, Bali",
+  name: "The Next Frontier",  
+  tagline: "APAC Coaching Conference 2027",
+  organizer: "Asia Pacific Alliance of Coaches",
+  date: "September, 2027",
+  location: "Bali, Indonesia",
   description:
-    "A two-day gathering for coaches, leaders, and people-practitioners across Indonesia and beyond — bringing together practical workshops, keynote conversations, and space to connect with a growing coaching community.",
+    "Inspiring People . Transforming System . Shaping Society",
   highlights: [
     "20+ speakers and practitioners",
     "2 days of keynotes & hands-on workshops",

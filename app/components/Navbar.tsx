@@ -18,12 +18,12 @@ export default function Navbar() {
     <header className="bg-primary text-primary-foreground">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/" className="flex flex-col leading-tight">
-          <span className="text-lg font-semibold">Loop Institute of Coaching</span>
+          <span className="text-lg font-semibold">APAC Coaching Conference 2027</span>
           <span className="text-xs text-primary-foreground/70">
-            Loop Coaching Summit 2026
+            Inspiring People . Transforming System . Shaping Society
           </span>
         </Link>
-        <nav className="flex gap-6 text-sm font-medium">
+        <nav className="flex items-center gap-6 text-sm font-medium">
           {links.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -38,6 +38,12 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <Link
+            href="/register"
+            className="rounded-full bg-accent px-4 py-1.5 text-accent-foreground transition-colors hover:bg-accent/90"
+          >
+            Register
+          </Link>
         </nav>
       </div>
     </header>

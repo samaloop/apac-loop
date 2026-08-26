@@ -4,6 +4,7 @@ import { speakers } from "./data/speakers";
 import { sponsorTiers } from "./data/sponsors";
 import SectionHeading from "./components/SectionHeading";
 import SpeakerCard from "./components/SpeakerCard";
+import { PalmFrond, WaveDivider } from "./components/motifs";
 
 export default function Home() {
   const featuredSpeakers = speakers.slice(0, 3);
@@ -11,8 +12,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <section className="bg-primary text-primary-foreground">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:py-32">
+      <section className="relative overflow-hidden bg-primary text-primary-foreground">
+        <PalmFrond className="pointer-events-none absolute -right-8 -top-8 h-64 w-64 text-primary-foreground/10 sm:h-96 sm:w-96" />
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:py-32">
           <span className="w-fit rounded-full bg-accent px-4 py-1 text-sm font-semibold text-accent-foreground">
             {event.date} &middot; {event.location}
           </span>
@@ -26,12 +28,12 @@ export default function Home() {
             {event.description}
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <a
-              href="#"
+            <Link
+              href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
-              Register Interest
-            </a>
+              Register Now
+            </Link>
             <Link
               href="/speakers"
               className="flex h-12 items-center justify-center rounded-full border border-primary-foreground/30 px-8 text-sm font-semibold transition-colors hover:bg-primary-foreground/10"
@@ -40,6 +42,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
+        <WaveDivider className="block h-10 w-full sm:h-16" color="var(--background)" />
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
@@ -53,7 +56,7 @@ export default function Home() {
             {event.highlights.map((highlight) => (
               <li
                 key={highlight}
-                className="flex items-start gap-3 rounded-xl border border-black/[.08] bg-white p-4 text-sm text-foreground/80 dark:border-white/[.145] dark:bg-[#111]"
+                className="flex items-start gap-3 rounded-2xl border border-black/[.08] bg-background p-4 text-sm text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
               >
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden />
                 {highlight}
@@ -67,7 +70,7 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Link
             href="/agenda"
-            className="flex flex-col gap-2 rounded-2xl border border-black/[.08] bg-white p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#111]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
           >
             <span className="text-sm font-semibold uppercase tracking-wide text-accent">
               Agenda
@@ -78,7 +81,7 @@ export default function Home() {
           </Link>
           <Link
             href="/venue"
-            className="flex flex-col gap-2 rounded-2xl border border-black/[.08] bg-white p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#111]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
           >
             <span className="text-sm font-semibold uppercase tracking-wide text-accent">
               Venue &amp; Bali Guide
@@ -120,7 +123,7 @@ export default function Home() {
             {platinumSponsors.map((sponsor) => (
               <div
                 key={sponsor.id}
-                className="flex h-24 items-center justify-center rounded-xl border border-black/[.08] bg-white px-4 text-center text-sm font-medium text-foreground/80 dark:border-white/[.145] dark:bg-[#111]"
+                className="flex h-24 items-center justify-center rounded-2xl border border-black/[.08] bg-background px-4 text-center text-sm font-medium text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
               >
                 {sponsor.name}
               </div>
@@ -135,18 +138,21 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-accent text-accent-foreground">
+      <WaveDivider className="block h-10 w-full sm:h-16" color="var(--accent)" />
+
+      <section className="relative overflow-hidden bg-accent text-accent-foreground">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-6 px-6 py-16 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
-            Join us in Bali this September.
+            Join us in Bali September 2027.
           </h2>
-          <a
-            href="#"
+          <Link
+            href="/register"
             className="flex h-12 items-center justify-center rounded-full bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Register Interest
-          </a>
+            Register Now
+          </Link>
         </div>
+        <WaveDivider className="block h-10 w-full sm:h-16" color="var(--surface-muted)" />
       </section>
     </div>
   );

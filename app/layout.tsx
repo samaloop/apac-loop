@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Loop Coaching Summit 2026 | Loop Institute of Coaching",
+  title: "APAC Coaching Conference 2027 | Inspiring People . Transforming System . Shaping Society",
   description:
-    "Loop Coaching Summit 2026 — a two-day gathering for coaches and leaders in Jakarta, Indonesia, hosted by Loop Institute of Coaching.",
+    "Inspiring People . Transforming System . Shaping Society",
 };
 
 export default function RootLayout({
