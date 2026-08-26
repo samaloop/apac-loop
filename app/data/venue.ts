@@ -1,8 +1,8 @@
 export const venue = {
-  name: "Bali Nusa Dua Convention Center (BNDCC)",
-  address: "Kawasan ITDC, Jl. Raya Nusa Dua Selatan, Nusa Dua, Bali 80363",
+  name: "lorem ipsum dolor sit amet",
+  address: "lorem ipsum dolor sit amet, Bali, Indonesia",
   description:
-    "Set within the Nusa Dua resort enclave, BNDCC is a short walk from beachfront hotels and about 20 minutes from Ngurah Rai International Airport (DPS) by car.",
+    "lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 };
 
 export type Hotel = {

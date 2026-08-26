@@ -8,7 +8,7 @@ export const event = {
     "Inspiring People . Transforming System . Shaping Society",
   highlights: [
     "20+ speakers and practitioners",
-    "2 days of keynotes & hands-on workshops",
+    "Lorem Ipsum dolor sit amet",
     "Community & networking sessions",
     "ICF-aligned continuing coach education (CCE) credits",
   ],

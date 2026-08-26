@@ -49,7 +49,7 @@ export default function Home() {
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-16">
           <SectionHeading
             eyebrow="About the Summit"
-            title="Two days, one growing coaching community"
+            title="Lorem Ipssum dolor sit amet"
             description={event.description}
           />
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -97,7 +97,7 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-20">
           <SectionHeading
             eyebrow="Featured Speakers"
-            title="Learn from practitioners shaping coaching in Indonesia"
+            title="lorem ipsum dolor sit amet"
           />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featuredSpeakers.map((speaker) => (
@@ -117,7 +117,7 @@ export default function Home() {
         <div className="flex flex-col gap-10">
           <SectionHeading
             eyebrow="Our Sponsors"
-            title="Backed by organizations investing in coaching"
+            title="Lorem ipsum dolor sit amet"
           />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {platinumSponsors.map((sponsor) => (
