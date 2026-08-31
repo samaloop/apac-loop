@@ -59,6 +59,17 @@ export async function createOrder(amount: string, currency: string): Promise<str
 
 export type CaptureResult = {
   status: string;
+  amount: string | null;
+  currency: string | null;
+};
+
+type PayPalCaptureResponse = {
+  status: string;
+  purchase_units?: {
+    payments?: {
+      captures?: { amount?: { value?: string; currency_code?: string } }[];
+    };
+  }[];
 };
 
 export async function captureOrder(orderId: string): Promise<CaptureResult> {
@@ -78,6 +89,11 @@ export async function captureOrder(orderId: string): Promise<CaptureResult> {
     throw new Error(`PayPal capture order failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { status: string };
-  return { status: data.status };
+  const data = (await response.json()) as PayPalCaptureResponse;
+  const capturedAmount = data.purchase_units?.[0]?.payments?.captures?.[0]?.amount;
+  return {
+    status: data.status,
+    amount: capturedAmount?.value ?? null,
+    currency: capturedAmount?.currency_code ?? null,
+  };
 }

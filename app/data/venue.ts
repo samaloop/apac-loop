@@ -1,8 +1,8 @@
 export const venue = {
-  name: "Bali Nusa Dua Convention Center (BNDCC)",
-  address: "Kawasan ITDC, Jl. Raya Nusa Dua Selatan, Nusa Dua, Bali 80363",
+  name: "Venue to be announced",
+  address: "Bali, Indonesia",
   description:
-    "Set within the Nusa Dua resort enclave, BNDCC is a short walk from beachfront hotels and about 20 minutes from Ngurah Rai International Airport (DPS) by car.",
+    "Full venue details will be announced soon. The conference will take place in Bali, Indonesia.",
 };
 
 export type Hotel = {
@@ -14,28 +14,28 @@ export type Hotel = {
 
 export const hotels: Hotel[] = [
   {
-    id: "grand-nusa-dua",
-    name: "Grand Nusa Dua Resort",
-    distance: "3 min walk",
-    description: "Closest option to the venue, right across the convention plaza.",
+    id: "hotel-1",
+    name: "Partner Hotel 1",
+    distance: "TBA",
+    description: "Hotel details to be announced.",
   },
   {
-    id: "samudra-beach-hotel",
-    name: "Samudra Beach Hotel",
-    distance: "8 min walk",
-    description: "Beachfront rooms with an easy walking route along the resort boardwalk.",
+    id: "hotel-2",
+    name: "Partner Hotel 2",
+    distance: "TBA",
+    description: "Hotel details to be announced.",
   },
   {
-    id: "taman-nusa-suites",
-    name: "Taman Nusa Suites",
-    distance: "10 min walk",
-    description: "Budget-friendly suites popular with returning conference attendees.",
+    id: "hotel-3",
+    name: "Partner Hotel 3",
+    distance: "TBA",
+    description: "Hotel details to be announced.",
   },
   {
-    id: "kertha-garden-inn",
-    name: "Kertha Garden Inn",
-    distance: "5 min drive",
-    description: "Quiet garden setting with a free shuttle to the convention center.",
+    id: "hotel-4",
+    name: "Partner Hotel 4",
+    distance: "TBA",
+    description: "Hotel details to be announced.",
   },
 ];
 
@@ -47,24 +47,24 @@ export type Attraction = {
 
 export const attractions: Attraction[] = [
   {
-    id: "water-blow",
-    name: "Water Blow, Nusa Dua",
-    description: "Dramatic ocean spray over coral cliffs, a 10-minute walk from the venue.",
+    id: "attraction-1",
+    name: "Local Attraction 1",
+    description: "Attraction details to be announced.",
   },
   {
-    id: "uluwatu-temple",
-    name: "Uluwatu Temple",
-    description: "Clifftop temple famous for sunset views and traditional Kecak fire dance.",
+    id: "attraction-2",
+    name: "Local Attraction 2",
+    description: "Attraction details to be announced.",
   },
   {
-    id: "garuda-wisnu-kencana",
-    name: "Garuda Wisnu Kencana Cultural Park",
-    description: "Home to Bali's giant Garuda Wisnu statue, with art performances and galleries.",
+    id: "attraction-3",
+    name: "Local Attraction 3",
+    description: "Attraction details to be announced.",
   },
   {
-    id: "pandawa-beach",
-    name: "Pandawa Beach",
-    description: "White-sand beach tucked behind limestone cliffs, about 20 minutes south.",
+    id: "attraction-4",
+    name: "Local Attraction 4",
+    description: "Attraction details to be announced.",
   },
 ];
 
@@ -77,21 +77,21 @@ export type LocalEvent = {
 
 export const nearbyEvents: LocalEvent[] = [
   {
-    id: "nusa-dua-fiesta",
-    name: "Nusa Dua Fiesta",
-    date: "Mid September",
-    description: "Annual arts, culture, and culinary festival held along the Nusa Dua boardwalk.",
+    id: "local-event-1",
+    name: "Local Event 1",
+    date: "TBA",
+    description: "Event details to be announced.",
   },
   {
-    id: "bali-sunset-market",
-    name: "Bali Sunset Market",
-    date: "Weekly, Friday evenings",
-    description: "Local crafts and street food market a short drive from the convention area.",
+    id: "local-event-2",
+    name: "Local Event 2",
+    date: "TBA",
+    description: "Event details to be announced.",
   },
   {
-    id: "ubud-wellness-weekend",
-    name: "Ubud Wellness Weekend",
-    date: "Late September",
-    description: "Yoga and mindfulness gathering in Ubud, about 90 minutes from Nusa Dua.",
+    id: "local-event-3",
+    name: "Local Event 3",
+    date: "TBA",
+    description: "Event details to be announced.",
   },
 ];

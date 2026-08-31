@@ -1,6 +1,7 @@
 import { captureOrder } from "@/lib/paypal";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { sendTicketEmail } from "@/lib/email";
+import { validateRegistrationFields } from "@/lib/validation";
 
 type CaptureRequestBody = {
   orderID?: string;
@@ -11,36 +12,19 @@ type CaptureRequestBody = {
   company?: string;
 };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validate(body: CaptureRequestBody) {
-  const { orderID, name, email, phone, country, company } = body;
-  if (!orderID) return "Missing orderID";
-  if (!name?.trim()) return "Name is required";
-  if (!email?.trim() || !EMAIL_PATTERN.test(email.trim())) return "A valid email is required";
-  if (!phone?.trim()) return "Phone is required";
-  if (!country?.trim()) return "Country is required";
-  if (!company?.trim()) return "Company is required";
-  return null;
-}
-
 export async function POST(request: Request) {
   const body = (await request.json()) as CaptureRequestBody;
 
-  const validationError = validate(body);
+  if (!body.orderID) {
+    return Response.json({ success: false, error: "Missing orderID" }, { status: 400 });
+  }
+
+  const validationError = validateRegistrationFields(body);
   if (validationError) {
     return Response.json({ success: false, error: validationError }, { status: 400 });
   }
 
   const { orderID, name, email, phone, country, company } = body as Required<CaptureRequestBody>;
-
-  const price = process.env.TICKET_PRICE_USD;
-  if (!price) {
-    return Response.json(
-      { success: false, error: "Ticket price is not configured" },
-      { status: 500 }
-    );
-  }
 
   let capture;
   try {
@@ -66,8 +50,10 @@ export async function POST(request: Request) {
       phone: phone.trim(),
       country: country.trim(),
       company: company.trim(),
-      amount: price,
-      currency: "USD",
+      // The amount PayPal's own capture response confirms was charged —
+      // the authoritative source, not a recomputed guess.
+      amount: capture.amount,
+      currency: capture.currency ?? "USD",
       payment_provider: "paypal",
       payment_status: "paid",
       payment_reference: orderID,
