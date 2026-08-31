@@ -1,4 +1,5 @@
 import { createInvoice } from "@/lib/xendit";
+import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateRegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
 import { event } from "@/app/data/event";
@@ -48,12 +49,16 @@ export async function POST(request: Request) {
 
   const total = calculateTotal(method, basePrice);
 
+  let invoice;
   try {
-    const invoice = await createInvoice({
+    invoice = await createInvoice({
       externalId: `reg-${crypto.randomUUID()}`,
       amount: total,
       payerEmail: email.trim(),
       description: `${event.name} registration`,
+      // Kept for visibility in the Xendit dashboard only — Xendit does not
+      // reliably echo this back in the webhook callback, so registration
+      // state relies on the pending row below (keyed by invoice id), not this.
       metadata: {
         name: name.trim(),
         email: email.trim(),
@@ -65,9 +70,31 @@ export async function POST(request: Request) {
       failureRedirectUrl: `${siteUrl}/register`,
       paymentMethods: XENDIT_METHOD_CODES[method.id],
     });
-    return Response.json({ invoiceUrl: invoice.invoiceUrl });
   } catch (error) {
     console.error("Failed to create Xendit invoice", error);
     return Response.json({ error: "Failed to create invoice" }, { status: 502 });
   }
+
+  // Save the registration as "pending" now, keyed by the invoice id, so the
+  // webhook only needs to flip it to "paid" — no reliance on webhook metadata.
+  const supabase = getSupabaseServerClient();
+  const { error: insertError } = await supabase.from("registrations").insert({
+    full_name: name.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    country: country.trim(),
+    company: company.trim(),
+    amount: total,
+    currency: "IDR",
+    payment_provider: "xendit",
+    payment_status: "pending",
+    payment_reference: invoice.id,
+  });
+
+  if (insertError) {
+    console.error("Failed to save pending Xendit registration", insertError);
+    return Response.json({ error: "Failed to start payment" }, { status: 500 });
+  }
+
+  return Response.json({ invoiceUrl: invoice.invoiceUrl });
 }

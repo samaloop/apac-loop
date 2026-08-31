@@ -22,8 +22,8 @@ export type Registration = {
   company: string;
   amount: string;
   currency: string;
-  payment_provider: "paypal";
-  payment_status: "paid" | "refunded";
+  payment_provider: "paypal" | "xendit";
+  payment_status: "pending" | "paid" | "refunded";
   payment_reference: string;
   checked_in_at: string | null;
   created_at: string;

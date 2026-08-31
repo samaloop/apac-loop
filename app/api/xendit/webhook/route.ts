@@ -6,19 +6,9 @@ type XenditInvoiceWebhookBody = {
   id: string;
   external_id?: string;
   status: string;
-  amount: number;
-  currency: string;
-  metadata?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    country?: string;
-    company?: string;
-  };
 };
 
 const PAID_STATUSES = new Set(["PAID", "SETTLED"]);
-const UNIQUE_VIOLATION = "23505";
 // external_id prefix this app uses when creating invoices (app/api/xendit/create-invoice).
 const OWN_EXTERNAL_ID_PREFIX = "reg-";
 
@@ -79,49 +69,30 @@ export async function POST(request: Request) {
     return Response.json({ ok: true, ignored: body.status });
   }
 
-  const metadata = body.metadata;
-  if (
-    !metadata?.name ||
-    !metadata.email ||
-    !metadata.phone ||
-    !metadata.country ||
-    !metadata.company
-  ) {
-    console.error("Xendit webhook missing registration metadata", body.id);
-    return Response.json({ error: "Missing registration metadata" }, { status: 400 });
-  }
-
+  // The registration row was already created as "pending" when the invoice
+  // was created (app/api/xendit/create-invoice), keyed by the invoice id.
+  // Flip it to "paid" here — only rows still "pending" get updated, so a
+  // duplicate webhook delivery is a no-op instead of double-processing.
   const supabase = getSupabaseServerClient();
-  const { data: registration, error: insertError } = await supabase
+  const { data: registration, error: updateError } = await supabase
     .from("registrations")
-    .insert({
-      full_name: metadata.name,
-      email: metadata.email,
-      phone: metadata.phone,
-      country: metadata.country,
-      company: metadata.company,
-      amount: body.amount,
-      currency: body.currency,
-      payment_provider: "xendit",
-      payment_status: "paid",
-      payment_reference: body.id,
-    })
-    .select("ticket_code")
+    .update({ payment_status: "paid" })
+    .eq("payment_reference", body.id)
+    .eq("payment_status", "pending")
+    .select("ticket_code, email, full_name")
     .single();
 
-  if (insertError) {
-    if (insertError.code === UNIQUE_VIOLATION) {
-      // Already processed a previous delivery of this same webhook — ack without re-sending.
-      return Response.json({ ok: true, alreadyProcessed: true });
-    }
-    console.error("Failed to save Xendit registration", insertError);
-    return Response.json({ error: "Failed to save registration" }, { status: 500 });
+  if (updateError || !registration) {
+    // Either already processed by an earlier delivery of this same webhook,
+    // or the pending row is missing entirely (create-invoice's insert failed).
+    console.error("No pending Xendit registration to update for", body.id, updateError);
+    return Response.json({ ok: true, alreadyProcessedOrMissing: true });
   }
 
   try {
     await sendTicketEmail({
-      to: metadata.email,
-      name: metadata.name,
+      to: registration.email,
+      name: registration.full_name,
       ticketCode: registration.ticket_code,
     });
   } catch (error) {
