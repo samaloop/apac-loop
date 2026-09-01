@@ -69,34 +69,45 @@ export async function POST(request: Request) {
     return Response.json({ ok: true, ignored: body.status });
   }
 
-  // The registration row was already created as "pending" when the invoice
-  // was created (app/api/xendit/create-invoice), keyed by the invoice id.
-  // Flip it to "paid" here — only rows still "pending" get updated, so a
-  // duplicate webhook delivery is a no-op instead of double-processing.
+  // The order (and its tickets) were already created as "pending" when the
+  // invoice was created (app/api/xendit/create-invoice), keyed by the
+  // invoice id. Flip the order to "paid" here — only a row still "pending"
+  // gets updated, so a duplicate webhook delivery is a no-op instead of
+  // double-processing.
   const supabase = getSupabaseServerClient();
-  const { data: registration, error: updateError } = await supabase
-    .from("registrations")
+  const { data: order, error: updateError } = await supabase
+    .from("orders")
     .update({ payment_status: "paid" })
     .eq("payment_reference", body.id)
     .eq("payment_status", "pending")
-    .select("ticket_code, email, full_name")
+    .select("id")
     .single();
 
-  if (updateError || !registration) {
+  if (updateError || !order) {
     // Either already processed by an earlier delivery of this same webhook,
-    // or the pending row is missing entirely (create-invoice's insert failed).
-    console.error("No pending Xendit registration to update for", body.id, updateError);
+    // or the pending order is missing entirely (create-invoice's insert failed).
+    console.error("No pending Xendit order to update for", body.id, updateError);
     return Response.json({ ok: true, alreadyProcessedOrMissing: true });
   }
 
-  try {
-    await sendTicketEmail({
-      to: registration.email,
-      name: registration.full_name,
-      ticketCode: registration.ticket_code,
-    });
-  } catch (error) {
-    console.error("Failed to send ticket email for Xendit registration", error);
+  const { data: tickets, error: ticketsError } = await supabase
+    .from("tickets")
+    .select("ticket_code, email, full_name")
+    .eq("order_id", order.id);
+
+  if (ticketsError || !tickets) {
+    console.error("Failed to load tickets for paid Xendit order", order.id, ticketsError);
+    return Response.json({ ok: true, ticketsLoadFailed: true });
+  }
+
+  const emailResults = await Promise.allSettled(
+    tickets.map((ticket) =>
+      sendTicketEmail({ to: ticket.email, name: ticket.full_name, ticketCode: ticket.ticket_code })
+    )
+  );
+  const emailFailures = emailResults.filter((result) => result.status === "rejected").length;
+  if (emailFailures > 0) {
+    console.error(`Failed to send ${emailFailures} of ${tickets.length} ticket emails for order`, order.id);
   }
 
   return Response.json({ ok: true });

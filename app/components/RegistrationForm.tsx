@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, type ReactNode } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   PayPalScriptProvider,
   PayPalButtons,
-  PayPalCardFieldsProvider,
-  PayPalNameField,
-  PayPalNumberField,
-  PayPalExpiryField,
-  PayPalCVVField,
-  usePayPalCardFields,
   type ReactPayPalScriptOptions,
 } from "@paypal/react-paypal-js";
 import {
@@ -19,6 +14,7 @@ import {
   calculateTotal,
   type PaymentMethod,
 } from "@/app/data/fees";
+import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 
 type FormState = {
   name: string;
@@ -50,19 +46,18 @@ const paypalOptions: ReactPayPalScriptOptions = {
   clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "",
   currency: "USD",
   intent: "capture",
-  components: "buttons,card-fields",
+  components: "buttons",
 };
 
-// Card fields render inside cross-origin PayPal iframes, so their text can't
-// follow the site's dark mode — keep this readable against the fixed light
-// wrapper background used below.
-const cardFieldStyle = {
-  input: {
-    "font-size": "15px",
-    color: "#1a1a1a",
-    "font-family": "inherit",
-  },
-};
+// This whole form intentionally does NOT follow the site's dark mode — it's
+// always a fixed light theme. Payment UI needs guaranteed, unambiguous
+// contrast, so fixed colors here sidestep any dark-mode contrast issues
+// entirely instead of chasing individual bugs.
+const INK = "#241c15";
+const INK_MUTED = "#6b6250";
+const PANEL_BG = "#ffffff";
+const SOFT_BG = "#f1e7d3";
+const BORDER = "#e4dac4";
 
 const BASE_PRICE_IDR = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_IDR ?? 0);
 const BASE_PRICE_USD = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_USD ?? 0);
@@ -78,14 +73,33 @@ function formatAmount(amount: number, currency: "IDR" | "USD"): string {
   return `$${amount.toFixed(2)}`;
 }
 
+function ticketMissingFields(ticket: FormState): string[] {
+  return fields
+    .filter(({ key }) =>
+      key === "email" ? !EMAIL_PATTERN.test(ticket.email.trim()) : ticket[key].trim() === ""
+    )
+    .map(({ label }) => label);
+}
+
 const xenditMethods = paymentMethods.filter((method) => method.provider === "xendit");
 const paypalMethods = paymentMethods.filter((method) => method.provider === "paypal");
 
-async function createPayPalOrder(methodId: string): Promise<string> {
+function ErrorNotice({ children }: { children: ReactNode }) {
+  return (
+    <p
+      className="rounded-2xl px-4 py-3 text-sm font-medium"
+      style={{ backgroundColor: "#c75b391a", color: "#c75b39" }}
+    >
+      {children}
+    </p>
+  );
+}
+
+async function createPayPalOrder(methodId: string, tickets: FormState[]): Promise<string> {
   const response = await fetch("/api/paypal/create-order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ method: methodId }),
+    body: JSON.stringify({ method: methodId, tickets }),
   });
   const data = (await response.json()) as { id?: string; error?: string };
   if (!data.id) {
@@ -96,19 +110,33 @@ async function createPayPalOrder(methodId: string): Promise<string> {
 
 export default function RegistrationForm() {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [tickets, setTickets] = useState<FormState[]>([{ ...EMPTY_FORM }]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [xenditLoading, setXenditLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
 
-  const missingFields = fields
-    .filter(({ key }) =>
-      key === "email" ? !EMAIL_PATTERN.test(form.email.trim()) : form[key].trim() === ""
-    )
-    .map(({ label }) => label);
-  const isValid = missingFields.length === 0;
+  const invalidAttendees = tickets
+    .map((ticket, index) => ({ index, missing: ticketMissingFields(ticket) }))
+    .filter(({ missing }) => missing.length > 0);
+  const isValid = invalidAttendees.length === 0;
+
+  function updateTicketField(index: number, key: keyof FormState, value: string) {
+    setTickets((current) =>
+      current.map((ticket, i) => (i === index ? { ...ticket, [key]: value } : ticket))
+    );
+  }
+
+  function addTicket() {
+    setTickets((current) =>
+      current.length < MAX_TICKETS_PER_ORDER ? [...current, { ...EMPTY_FORM }] : current
+    );
+  }
+
+  function removeTicket() {
+    setTickets((current) => (current.length > 1 ? current.slice(0, -1) : current));
+  }
 
   async function capturePayment(orderID: string) {
     setSubmitting(true);
@@ -116,7 +144,7 @@ export default function RegistrationForm() {
       const response = await fetch("/api/paypal/capture-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderID, ...form }),
+        body: JSON.stringify({ orderID, tickets }),
       });
       const result = (await response.json()) as { success: boolean; error?: string };
       if (!result.success) {
@@ -144,7 +172,7 @@ export default function RegistrationForm() {
       const response = await fetch("/api/xendit/create-invoice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, method: selectedMethod.id }),
+        body: JSON.stringify({ tickets, method: selectedMethod.id }),
       });
       const result = (await response.json()) as { invoiceUrl?: string; error?: string };
       if (!result.invoiceUrl) {
@@ -160,44 +188,94 @@ export default function RegistrationForm() {
   }
 
   return (
-    <div className="flex flex-col gap-8 rounded-3xl border border-black/[.08] bg-background p-6 dark:border-white/[.145] dark:bg-[#241c15] sm:p-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {fields.map(({ key, label, type }) => (
-          <label key={key} className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium text-foreground">
-              {label} <span className="text-accent">*</span>
-            </span>
-            <input
-              type={type}
-              value={form[key]}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, [key]: event.target.value }))
-              }
-              required
-              className="rounded-2xl border border-black/[.08] bg-background px-4 py-2.5 text-foreground outline-none transition-colors focus:border-accent dark:border-white/[.145] dark:bg-[#1c1712]"
-            />
-          </label>
+    <div
+      className="flex flex-col gap-8 rounded-3xl border p-6 sm:p-8"
+      style={{ backgroundColor: PANEL_BG, borderColor: BORDER }}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold" style={{ color: INK }}>
+            Number of tickets
+          </p>
+          <p className="text-xs" style={{ color: INK_MUTED }}>
+            Up to {MAX_TICKETS_PER_ORDER} per order
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={removeTicket}
+            disabled={tickets.length <= 1}
+            className="flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ borderColor: BORDER, color: INK }}
+            aria-label="Remove a ticket"
+          >
+            −
+          </button>
+          <span className="w-6 text-center text-lg font-semibold" style={{ color: INK }}>
+            {tickets.length}
+          </span>
+          <button
+            type="button"
+            onClick={addTicket}
+            disabled={tickets.length >= MAX_TICKETS_PER_ORDER}
+            className="flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ borderColor: BORDER, color: INK }}
+            aria-label="Add a ticket"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {tickets.map((ticket, index) => (
+          <div
+            key={index}
+            className="flex flex-col gap-4 rounded-2xl border p-4"
+            style={{ borderColor: BORDER }}
+          >
+            <p className="text-sm font-semibold" style={{ color: INK }}>
+              Attendee {index + 1}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {fields.map(({ key, label, type }) => (
+                <label key={key} className="flex flex-col gap-1.5 text-sm">
+                  <span className="font-medium" style={{ color: INK }}>
+                    {label} <span style={{ color: "#c75b39" }}>*</span>
+                  </span>
+                  <input
+                    type={type}
+                    value={ticket[key]}
+                    onChange={(event) => updateTicketField(index, key, event.target.value)}
+                    required
+                    className="rounded-2xl border px-4 py-2.5 outline-none transition-colors focus:border-[#c75b39]"
+                    style={{ backgroundColor: PANEL_BG, borderColor: BORDER, color: INK }}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
-      {error && (
-        <p className="rounded-2xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
-          {error}
-        </p>
-      )}
+      {error && <ErrorNotice>{error}</ErrorNotice>}
 
       {!showPayment && (
         <div className="flex flex-col gap-3">
           {!isValid && (
-            <p className="text-sm text-foreground/60">
-              Fill in {missingFields.join(", ")} to continue to payment.
+            <p className="text-sm" style={{ color: INK_MUTED }}>
+              Fill in required fields for{" "}
+              {invalidAttendees.map(({ index }) => `Attendee ${index + 1}`).join(", ")} to
+              continue to payment.
             </p>
           )}
           <button
             type="button"
             disabled={!isValid}
             onClick={() => setShowPayment(true)}
-            className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-12 items-center justify-center rounded-full px-8 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: "#c75b39" }}
           >
             Continue to Payment
           </button>
@@ -209,38 +287,50 @@ export default function RegistrationForm() {
           <PaymentMethodGroup
             title="Pay with Xendit"
             methods={xenditMethods}
+            quantity={tickets.length}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
           <PaymentMethodGroup
             title="Pay with PayPal"
             methods={paypalMethods}
+            quantity={tickets.length}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
 
           {selectedMethod && (
-            <div className="rounded-2xl bg-surface-muted p-5">
+            <div className="rounded-2xl p-5" style={{ backgroundColor: SOFT_BG }}>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-foreground/70">Ticket price</span>
-                <span className="text-foreground">
-                  {formatAmount(basePriceFor(selectedMethod), selectedMethod.currency)}
+                <span style={{ color: INK_MUTED }}>
+                  Ticket price × {tickets.length}
                 </span>
-              </div>
-              <div className="mt-1 flex items-center justify-between text-sm">
-                <span className="text-foreground/70">Payment fee</span>
-                <span className="text-foreground">
+                <span style={{ color: INK }}>
                   {formatAmount(
-                    calculateFee(selectedMethod, basePriceFor(selectedMethod)),
+                    basePriceFor(selectedMethod) * tickets.length,
                     selectedMethod.currency
                   )}
                 </span>
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-black/10 pt-3 dark:border-white/10">
-                <span className="text-sm font-semibold text-foreground">Total</span>
-                <span className="text-lg font-bold text-accent">
+              <div className="mt-1 flex items-center justify-between text-sm">
+                <span style={{ color: INK_MUTED }}>Payment fee</span>
+                <span style={{ color: INK }}>
                   {formatAmount(
-                    calculateTotal(selectedMethod, basePriceFor(selectedMethod)),
+                    calculateFee(selectedMethod, basePriceFor(selectedMethod) * tickets.length),
+                    selectedMethod.currency
+                  )}
+                </span>
+              </div>
+              <div
+                className="mt-3 flex items-center justify-between border-t pt-3"
+                style={{ borderColor: BORDER }}
+              >
+                <span className="text-sm font-semibold" style={{ color: INK }}>
+                  Total
+                </span>
+                <span className="text-lg font-bold" style={{ color: "#c75b39" }}>
+                  {formatAmount(
+                    calculateTotal(selectedMethod, basePriceFor(selectedMethod) * tickets.length),
                     selectedMethod.currency
                   )}
                 </span>
@@ -253,7 +343,8 @@ export default function RegistrationForm() {
               type="button"
               disabled={xenditLoading}
               onClick={payWithXendit}
-              className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-12 items-center justify-center rounded-full px-8 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ backgroundColor: "#c75b39" }}
             >
               {xenditLoading ? "Redirecting…" : "Pay Now"}
             </button>
@@ -261,35 +352,16 @@ export default function RegistrationForm() {
 
           {selectedMethod?.provider === "paypal" && (
             <PayPalScriptProvider options={paypalOptions}>
-              {selectedMethod.id === "paypal-card" ? (
-                <PayPalCardFieldsProvider
-                  createOrder={() => {
-                    setError(null);
-                    return createPayPalOrder(selectedMethod.id);
-                  }}
-                  onApprove={(data) => capturePayment(data.orderID)}
-                  onError={handlePaymentError}
-                  style={cardFieldStyle}
-                >
-                  <CardPaymentFields
-                    name={form.name}
-                    submitting={submitting}
-                    setSubmitting={setSubmitting}
-                    setError={setError}
-                  />
-                </PayPalCardFieldsProvider>
-              ) : (
-                <PayPalButtons
-                  disabled={submitting}
-                  style={{ layout: "vertical", color: "gold", shape: "pill" }}
-                  createOrder={() => {
-                    setError(null);
-                    return createPayPalOrder(selectedMethod.id);
-                  }}
-                  onApprove={(data) => capturePayment(data.orderID)}
-                  onError={handlePaymentError}
-                />
-              )}
+              <PayPalButtons
+                disabled={submitting}
+                style={{ layout: "vertical", color: "gold", shape: "pill" }}
+                createOrder={() => {
+                  setError(null);
+                  return createPayPalOrder(selectedMethod.id, tickets);
+                }}
+                onApprove={(data) => capturePayment(data.orderID)}
+                onError={handlePaymentError}
+              />
             </PayPalScriptProvider>
           )}
         </div>
@@ -301,142 +373,80 @@ export default function RegistrationForm() {
 function PaymentMethodGroup({
   title,
   methods,
+  quantity,
   selectedId,
   onSelect,
 }: {
   title: string;
   methods: PaymentMethod[];
+  quantity: number;
   selectedId: string | null;
   onSelect: (method: PaymentMethod) => void;
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm font-semibold uppercase tracking-wide text-foreground/60">{title}</p>
+      <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: INK_MUTED }}>
+        {title}
+      </p>
       <div className="flex flex-col gap-2">
         {methods.map((method) => {
           const isSelected = selectedId === method.id;
-          const fee = calculateFee(method, basePriceFor(method));
+          const fee = calculateFee(method, basePriceFor(method) * quantity);
           return (
             <label
               key={method.id}
-              className={`flex cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition-colors ${
-                isSelected
-                  ? "border-accent bg-accent/5"
-                  : "border-black/[.08] hover:border-accent/50 dark:border-white/[.145]"
-              }`}
+              className="flex cursor-pointer flex-col gap-2 rounded-2xl border px-4 py-3 transition-colors"
+              style={{
+                borderColor: isSelected ? "#c75b39" : BORDER,
+                backgroundColor: isSelected ? "#c75b390d" : PANEL_BG,
+              }}
             >
-              <div className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="payment-method"
-                  checked={isSelected}
-                  onChange={() => onSelect(method)}
-                  className="h-4 w-4 accent-accent"
-                />
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{method.label}</p>
-                  <p className="text-xs text-foreground/60">{method.description}</p>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    checked={isSelected}
+                    onChange={() => onSelect(method)}
+                    className="h-4 w-4 accent-[#c75b39]"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: INK }}>
+                      {method.label}
+                    </p>
+                    <p className="text-xs" style={{ color: INK_MUTED }}>
+                      {method.description}
+                    </p>
+                  </div>
                 </div>
+                <span className="shrink-0 text-xs font-medium" style={{ color: INK_MUTED }}>
+                  +{formatAmount(fee, method.currency)}
+                </span>
               </div>
-              <span className="shrink-0 text-xs font-medium text-foreground/60">
-                +{formatAmount(fee, method.currency)}
-              </span>
+              {(method.badges || method.cardNetworks) && (
+                <div className="flex flex-wrap items-center gap-1.5 pl-7">
+                  {method.badges?.map((badge) => (
+                    <span
+                      key={badge}
+                      className="rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                      style={{ backgroundColor: SOFT_BG, color: INK_MUTED }}
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                  {method.cardNetworks && (
+                    <>
+                      <Image src="/images/cards/visa.svg" alt="Visa" width={28} height={18} className="h-4.5 w-auto" />
+                      <Image src="/images/cards/mastercard.svg" alt="Mastercard" width={24} height={18} className="h-4.5 w-auto" />
+                      <Image src="/images/cards/jcb.svg" alt="JCB" width={24} height={18} className="h-4.5 w-auto" />
+                    </>
+                  )}
+                </div>
+              )}
             </label>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-const cardFieldWrapperClass = "rounded-2xl border border-black/[.08] bg-white px-4 py-2.5";
-
-function CardPaymentFields({
-  name,
-  submitting,
-  setSubmitting,
-  setError,
-}: {
-  name: string;
-  submitting: boolean;
-  setSubmitting: (value: boolean) => void;
-  setError: (value: string | null) => void;
-}) {
-  const { cardFieldsForm } = usePayPalCardFields();
-  const [timedOut, setTimedOut] = useState(false);
-
-  useEffect(() => {
-    if (cardFieldsForm) return;
-    const timer = setTimeout(() => setTimedOut(true), 8000);
-    return () => clearTimeout(timer);
-  }, [cardFieldsForm]);
-
-  if (!cardFieldsForm) {
-    if (timedOut) {
-      return (
-        <p className="rounded-2xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
-          The payment form couldn&apos;t load. Please refresh the page, or contact us if this
-          keeps happening.
-        </p>
-      );
-    }
-    return <p className="text-sm text-foreground/60">Loading payment form…</p>;
-  }
-
-  if (!cardFieldsForm.isEligible()) {
-    return (
-      <p className="rounded-2xl bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
-        Card payments aren&apos;t available right now. Please contact us to complete your
-        registration.
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5 text-sm">
-        <span className="font-medium text-foreground">Name on card</span>
-        <div className={cardFieldWrapperClass}>
-          <PayPalNameField />
-        </div>
-      </label>
-      <label className="flex flex-col gap-1.5 text-sm">
-        <span className="font-medium text-foreground">Card number</span>
-        <div className={cardFieldWrapperClass}>
-          <PayPalNumberField />
-        </div>
-      </label>
-      <div className="grid grid-cols-2 gap-4">
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-foreground">Expiry</span>
-          <div className={cardFieldWrapperClass}>
-            <PayPalExpiryField />
-          </div>
-        </label>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-foreground">CVV</span>
-          <div className={cardFieldWrapperClass}>
-            <PayPalCVVField />
-          </div>
-        </label>
-      </div>
-      <button
-        type="button"
-        disabled={submitting}
-        onClick={async () => {
-          setError(null);
-          setSubmitting(true);
-          try {
-            await cardFieldsForm.submit({ name });
-          } catch {
-            setError("Please check your card details and try again.");
-            setSubmitting(false);
-          }
-        }}
-        className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-60"
-      >
-        Pay with Card
-      </button>
     </div>
   );
 }

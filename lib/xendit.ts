@@ -15,7 +15,7 @@ export type CreateInvoiceArgs = {
   amount: number;
   payerEmail: string;
   description: string;
-  metadata: Record<string, string>;
+  metadata?: Record<string, string>;
   successRedirectUrl: string;
   failureRedirectUrl: string;
   paymentMethods?: string[];

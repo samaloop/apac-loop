@@ -12,19 +12,29 @@ export function getSupabaseServerClient() {
   });
 }
 
-export type Registration = {
+export type Order = {
   id: string;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  quantity: number;
+  amount: string;
+  currency: string;
+  payment_provider: "paypal" | "xendit";
+  payment_status: "pending" | "paid" | "refunded";
+  payment_reference: string;
+  created_at: string;
+};
+
+export type Ticket = {
+  id: string;
+  order_id: string;
   ticket_code: string;
   full_name: string;
   email: string;
   phone: string;
   country: string;
   company: string;
-  amount: string;
-  currency: string;
-  payment_provider: "paypal" | "xendit";
-  payment_status: "pending" | "paid" | "refunded";
-  payment_reference: string;
   checked_in_at: string | null;
   created_at: string;
 };

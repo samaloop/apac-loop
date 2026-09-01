@@ -3,7 +3,6 @@ export type PaymentMethodId =
   | "xendit-qris"
   | "xendit-ewallet"
   | "xendit-card"
-  | "paypal-card"
   | "paypal-account";
 
 export type PaymentMethodFee =
@@ -17,6 +16,12 @@ export type PaymentMethod = {
   description: string;
   currency: "IDR" | "USD";
   fee: PaymentMethodFee;
+  // Text badges (bank/wallet short names, "QRIS") — no official logo source
+  // for these Indonesia-specific brands, so styled text stands in for them.
+  badges?: string[];
+  // Real network logos (public/images/cards/*.svg) for methods that go
+  // through Visa/Mastercard/JCB.
+  cardNetworks?: boolean;
 };
 
 // Fee figures are Xendit's and PayPal's *public* rate-card numbers (checked
@@ -31,6 +36,7 @@ export const paymentMethods: PaymentMethod[] = [
     description: "BCA, BNI, Mandiri, and more",
     currency: "IDR",
     fee: { type: "flat", amount: 13000 },
+    badges: ["BCA", "BNI", "Mandiri", "Permata"],
   },
   {
     id: "xendit-qris",
@@ -39,6 +45,7 @@ export const paymentMethods: PaymentMethod[] = [
     description: "Scan with any e-wallet or mobile banking app",
     currency: "IDR",
     fee: { type: "percent", rate: 0.007, fixed: 4000 },
+    badges: ["QRIS"],
   },
   {
     id: "xendit-ewallet",
@@ -47,6 +54,7 @@ export const paymentMethods: PaymentMethod[] = [
     description: "OVO, DANA, ShopeePay, LinkAja (rate varies by wallet)",
     currency: "IDR",
     fee: { type: "percent", rate: 0.03, fixed: 4000 },
+    badges: ["OVO", "DANA", "ShopeePay", "LinkAja"],
   },
   {
     id: "xendit-card",
@@ -55,22 +63,16 @@ export const paymentMethods: PaymentMethod[] = [
     description: "Visa, Mastercard, JCB via Xendit",
     currency: "IDR",
     fee: { type: "percent", rate: 0.029, fixed: 6000 },
-  },
-  {
-    id: "paypal-card",
-    provider: "paypal",
-    label: "Credit/Debit Card",
-    description: "Visa, Mastercard via PayPal",
-    currency: "USD",
-    fee: { type: "percent", rate: 0.044, fixed: 0.3 },
+    cardNetworks: true,
   },
   {
     id: "paypal-account",
     provider: "paypal",
-    label: "PayPal Balance",
-    description: "Pay with your PayPal account",
+    label: "PayPal",
+    description: "Pay with a card or your PayPal balance",
     currency: "USD",
     fee: { type: "percent", rate: 0.044, fixed: 0.3 },
+    cardNetworks: true,
   },
 ];
 
