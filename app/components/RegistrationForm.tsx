@@ -42,8 +42,14 @@ const fields: { key: keyof FormState; label: string; type: string }[] = [
   { key: "company", label: "Company", type: "text" },
 ];
 
+// Same demo/live switch as lib/paypal.ts (server side) — keep both in sync.
+const IS_PAYPAL_LIVE = process.env.NEXT_PUBLIC_PAYPAL_ENV === "live";
+
 const paypalOptions: ReactPayPalScriptOptions = {
-  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "",
+  clientId:
+    (IS_PAYPAL_LIVE
+      ? process.env.NEXT_PUBLIC_LIVE_PAYPAL_CLIENT_ID
+      : process.env.NEXT_PUBLIC_DEMO_PAYPAL_CLIENT_ID) ?? "",
   currency: "USD",
   intent: "capture",
   components: "buttons",

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Ticket price is not configured" }, { status: 500 });
   }
 
-  const quantity = tickets.length;
+  const quantity = tickets.length;  
   const total = calculateTotal(method, ticketPrice * quantity).toFixed(2);
 
   try {

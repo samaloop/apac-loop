@@ -1,10 +1,22 @@
-const PAYPAL_API_BASE = process.env.PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com";
+// Single switch between the demo (sandbox) and live credential sets below.
+// NEXT_PUBLIC_ because the client component needs to read the same flag to
+// pick which client id to hand the PayPal SDK — an environment name isn't
+// sensitive, so it's fine to expose.
+const IS_LIVE = process.env.NEXT_PUBLIC_PAYPAL_ENV === "live";
+
+const PAYPAL_API_BASE = IS_LIVE
+  ? process.env.LIVE_PAYPAL_API_BASE ?? "https://api-m.paypal.com"
+  : process.env.DEMO_PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com";
 
 function getCredentials() {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const clientId = IS_LIVE
+    ? process.env.NEXT_PUBLIC_LIVE_PAYPAL_CLIENT_ID
+    : process.env.NEXT_PUBLIC_DEMO_PAYPAL_CLIENT_ID;
+  const clientSecret = IS_LIVE
+    ? process.env.LIVE_PAYPAL_CLIENT_SECRET
+    : process.env.DEMO_PAYPAL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    throw new Error("Missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET");
+    throw new Error(`Missing PayPal ${IS_LIVE ? "live" : "demo"} credentials`);
   }
   return { clientId, clientSecret };
 }

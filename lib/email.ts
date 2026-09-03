@@ -138,3 +138,98 @@ export async function sendTicketEmail({ to, name, ticketCode }: SendTicketEmailA
     ],
   });
 }
+
+export type AdminNotificationOrder = {
+  provider: "paypal" | "xendit";
+  amount: string | number;
+  currency: string;
+  paymentReference: string;
+  quantity: number;
+};
+
+export type AdminNotificationAttendee = {
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  company: string;
+  ticketCode: string;
+};
+
+function buildAdminNotificationHtml({
+  order,
+  attendees,
+}: {
+  order: AdminNotificationOrder;
+  attendees: AdminNotificationAttendee[];
+}) {
+  const attendeeRows = attendees
+    .map(
+      (attendee) => `
+      <tr>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.name)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.email)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.phone)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.country)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.company)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4; font-family:monospace; font-size:12px;">${escapeHtml(attendee.ticketCode)}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `
+    <div style="font-family: Arial, Helvetica, sans-serif; max-width: 720px; color:#241c15;">
+      <h2 style="margin:0 0 16px 0; font-size:18px;">New ${order.provider === "paypal" ? "PayPal" : "Xendit"} transaction</h2>
+      <table style="border-collapse:collapse; margin-bottom:20px; font-size:13px;">
+        <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Amount</td><td style="padding:4px 0; font-weight:bold;">${escapeHtml(String(order.amount))} ${escapeHtml(order.currency)}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Quantity</td><td style="padding:4px 0;">${order.quantity} ticket${order.quantity > 1 ? "s" : ""}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Provider</td><td style="padding:4px 0;">${escapeHtml(order.provider)}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Payment reference</td><td style="padding:4px 0; font-family:monospace; font-size:12px;">${escapeHtml(order.paymentReference)}</td></tr>
+      </table>
+      <table style="border-collapse:collapse; width:100%; font-size:13px;">
+        <thead>
+          <tr style="text-align:left; background-color:#f1e7d3;">
+            <th style="padding:8px 12px;">Name</th>
+            <th style="padding:8px 12px;">Email</th>
+            <th style="padding:8px 12px;">Phone</th>
+            <th style="padding:8px 12px;">Country</th>
+            <th style="padding:8px 12px;">Company</th>
+            <th style="padding:8px 12px;">Ticket code</th>
+          </tr>
+        </thead>
+        <tbody>${attendeeRows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// Internal record-keeping notification — sent to the team, not the buyer.
+// Best-effort: never throws, so a misconfigured/failing admin email can
+// never break the actual purchase flow. Call it after the buyer-facing
+// ticket emails have already gone out.
+export async function sendAdminNotification({
+  order,
+  attendees,
+}: {
+  order: AdminNotificationOrder;
+  attendees: AdminNotificationAttendee[];
+}) {
+  const to = process.env.ADMIN_NOTIFICATION_EMAIL;
+  const from = process.env.EMAIL_FROM_DEV;
+  if (!to || !from) {
+    console.error("Skipping admin notification: ADMIN_NOTIFICATION_EMAIL or EMAIL_FROM_DEV not configured");
+    return;
+  }
+
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from,
+      to,
+      subject: `[${order.provider}] New registration — ${order.quantity} ticket${order.quantity > 1 ? "s" : ""}, ${order.amount} ${order.currency}`,
+      html: buildAdminNotificationHtml({ order, attendees }),
+    });
+  } catch (error) {
+    console.error("Failed to send admin notification email", error);
+  }
+}

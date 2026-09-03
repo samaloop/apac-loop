@@ -1,6 +1,6 @@
 import { captureOrder } from "@/lib/paypal";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { sendTicketEmail } from "@/lib/email";
+import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 
 type CaptureRequestBody = {
@@ -103,6 +103,24 @@ export async function POST(request: Request) {
   if (emailFailures > 0) {
     console.error(`Failed to send ${emailFailures} of ${insertedTickets.length} ticket emails`);
   }
+
+  await sendAdminNotification({
+    order: {
+      provider: "paypal",
+      amount: capture.amount ?? "unknown",
+      currency: capture.currency ?? "USD",
+      paymentReference: body.orderID,
+      quantity: tickets.length,
+    },
+    attendees: tickets.map((ticket, index) => ({
+      name: ticket.name!.trim(),
+      email: ticket.email!.trim(),
+      phone: ticket.phone!.trim(),
+      country: ticket.country!.trim(),
+      company: ticket.company!.trim(),
+      ticketCode: insertedTickets[index]?.ticket_code ?? "unknown",
+    })),
+  });
 
   return Response.json({
     success: true,

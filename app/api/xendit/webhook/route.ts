@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { sendTicketEmail } from "@/lib/email";
+import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
 
 type XenditInvoiceWebhookBody = {
   id: string;
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     .update({ payment_status: "paid" })
     .eq("payment_reference", body.id)
     .eq("payment_status", "pending")
-    .select("id")
+    .select("id, amount, currency, quantity")
     .single();
 
   if (updateError || !order) {
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
   const { data: tickets, error: ticketsError } = await supabase
     .from("tickets")
-    .select("ticket_code, email, full_name")
+    .select("ticket_code, email, full_name, phone, country, company")
     .eq("order_id", order.id);
 
   if (ticketsError || !tickets) {
@@ -109,6 +109,24 @@ export async function POST(request: Request) {
   if (emailFailures > 0) {
     console.error(`Failed to send ${emailFailures} of ${tickets.length} ticket emails for order`, order.id);
   }
+
+  await sendAdminNotification({
+    order: {
+      provider: "xendit",
+      amount: order.amount,
+      currency: order.currency,
+      paymentReference: body.id,
+      quantity: order.quantity,
+    },
+    attendees: tickets.map((ticket) => ({
+      name: ticket.full_name,
+      email: ticket.email,
+      phone: ticket.phone,
+      country: ticket.country,
+      company: ticket.company,
+      ticketCode: ticket.ticket_code,
+    })),
+  });
 
   return Response.json({ ok: true });
 }
