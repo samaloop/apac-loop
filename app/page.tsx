@@ -21,7 +21,7 @@ export default function Home() {
             fill
             priority
             sizes="100vw"
-            className="hidden object-cover sm:block"
+            className="object-cover object-[30%_center] sm:object-center"
           />
           <Image
             src="/images/hero-dancer.webp"
@@ -29,10 +29,10 @@ export default function Home() {
             width={384}
             height={352}
             priority
-            className="pointer-events-none absolute bottom-0 left-0 hidden h-auto w-40 sm:block sm:w-56 lg:w-72"
+            className="pointer-events-none absolute bottom-0 left-0 h-auto w-32 sm:w-40 md:w-56 lg:w-72"
           />
         </div>
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:py-32">
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pt-24 pb-52 sm:py-32">
           <span className="w-fit rounded-full bg-accent px-4 py-1 text-sm font-semibold text-accent-foreground">
             {event.date} &middot; {event.location}
           </span>
