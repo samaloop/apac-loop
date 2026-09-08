@@ -11,6 +11,12 @@ export default function Home() {
   const featuredSpeakers = speakers.slice(0, 3);
   const platinumSponsors = sponsorTiers[0]?.sponsors ?? [];
 
+  // Split the event name so the last word gets the gold-gradient treatment,
+  // matching the poster's "THE NEXT" (plain) / "FRONTIER" (gold) layout.
+  const nameParts = event.name.split(" ");
+  const heroTitleHighlight = nameParts.pop() ?? event.name;
+  const heroTitleLead = nameParts.join(" ");
+
   return (
     <div className="flex flex-col">
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
@@ -32,20 +38,52 @@ export default function Home() {
             className="pointer-events-none absolute bottom-0 left-0 h-auto w-32 sm:w-40 md:w-56 lg:w-72"
           />
         </div>
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pt-24 pb-52 sm:py-32">
-          <span className="w-fit rounded-full bg-accent px-4 py-1 text-sm font-semibold text-accent-foreground">
-            {event.date} &middot; {event.location}
-          </span>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            {event.name}
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:py-32">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/logo_apac.webp"
+              alt=""
+              width={140}
+              height={79}
+              className="h-20 w-auto"
+            />
+            
+          </div>
+          <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
+
+          <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
+            {heroTitleLead && <span className="block">{heroTitleLead}</span>}
+            <span
+              className="block bg-clip-text text-transparent"
+              style={{ backgroundImage: "linear-gradient(90deg, #f2c14e, #c75b39)" }}
+            >
+              {heroTitleHighlight}
+            </span>
           </h1>
-          <p className="max-w-2xl text-xl text-primary-foreground/80">
-            {event.tagline}
-          </p>
+
           <p className="max-w-2xl text-base leading-7 text-primary-foreground/70">
             {event.description}
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
+
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-primary-foreground/90">
+            <span className="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-gold" aria-hidden>
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" />
+              </svg>
+              {event.date}
+            </span>
+            <span className="h-4 w-px bg-primary-foreground/30" aria-hidden />
+            <span className="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-gold" aria-hidden>
+                <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              {event.location}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-4 pt-2 sm:flex-row">
             <Link
               href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
@@ -61,6 +99,36 @@ export default function Home() {
           </div>
         </div>
         <WaveDivider className="relative z-10 block h-10 w-full sm:h-16" color="var(--background)" />
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-6 pt-12">
+        <div className="flex flex-col items-center gap-6 border-b border-black/[.08] pb-12 dark:border-white/[.145] sm:flex-row sm:justify-center sm:gap-16">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+              Presented by
+            </span>
+            <Image
+              src="/images/logo_apac.webp"
+              alt="Asia Pacific Alliance of Coaches"
+              width={192}
+              height={108}
+              className="h-18 w-auto"
+            />
+          </div>
+          <div className="hidden h-8 w-px bg-black/[.08] dark:bg-white/[.145] sm:block" />
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+              Official Local Partner
+            </span>
+            <Image
+              src="/images/Logo-loop.webp"
+              alt="Loop Institute of Coaching"
+              width={200}
+              height={68}
+              className="h-9 w-auto"
+            />
+          </div>
+        </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
