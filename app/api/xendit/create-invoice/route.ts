@@ -2,6 +2,7 @@ import { createInvoice } from "@/lib/xendit";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
+import { getPricingTier, USD_TO_IDR_RATE } from "@/app/data/pricing";
 import { event } from "@/app/data/event";
 
 type CreateInvoiceRequestBody = {
@@ -35,13 +36,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid payment method" }, { status: 400 });
   }
 
-  const ticketPrice = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_IDR);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!ticketPrice || !siteUrl) {
+  if (!siteUrl) {
     return Response.json({ error: "Xendit payment is not configured" }, { status: 500 });
   }
 
-  const total = calculateTotal(method, ticketPrice * tickets.length);
+  // Ticket type is validated (against pricingTiers) by validateTickets above;
+  // the price used is each tier's Non-Member price (no membership check yet),
+  // converted from USD to IDR via a dummy placeholder exchange rate.
+  const basePriceUSD = tickets.reduce(
+    (sum, ticket) => sum + (getPricingTier(ticket.ticketType)?.nonMemberPrice ?? 0),
+    0
+  );
+  const basePriceIDR = Math.round(basePriceUSD * USD_TO_IDR_RATE);
+  const total = calculateTotal(method, basePriceIDR);
 
   let invoice;
   try {
@@ -92,6 +100,7 @@ export async function POST(request: Request) {
       phone: ticket.phone!.trim(),
       country: ticket.country!.trim(),
       company: ticket.company!.trim(),
+      ticket_type: ticket.ticketType!.trim(),
     }))
   );
 

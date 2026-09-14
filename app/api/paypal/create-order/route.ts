@@ -1,5 +1,6 @@
 import { createOrder } from "@/lib/paypal";
 import { getPaymentMethod, calculateTotal } from "@/app/data/fees";
+import { getPricingTier } from "@/app/data/pricing";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -9,20 +10,20 @@ export async function POST(request: Request) {
   if (ticketsError) {
     return Response.json({ error: ticketsError }, { status: 400 });
   }
-  const tickets = body.tickets as RegistrationFields[];
+  const tickets = body.tickets as Required<RegistrationFields>[];
 
   const method = getPaymentMethod(body.method ?? "");
   if (!method || method.provider !== "paypal") {
     return Response.json({ error: "Invalid payment method" }, { status: 400 });
   }
 
-  const ticketPrice = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_USD);
-  if (!ticketPrice) {
-    return Response.json({ error: "Ticket price is not configured" }, { status: 500 });
-  }
-
-  const quantity = tickets.length;  
-  const total = calculateTotal(method, ticketPrice * quantity).toFixed(2);
+  // Ticket type is validated (against pricingTiers) by validateTickets above;
+  // the price used is each tier's Non-Member price (no membership check yet).
+  const basePrice = tickets.reduce(
+    (sum, ticket) => sum + (getPricingTier(ticket.ticketType)?.nonMemberPrice ?? 0),
+    0
+  );
+  const total = calculateTotal(method, basePrice).toFixed(2);
 
   try {
     const orderId = await createOrder(total, "USD");

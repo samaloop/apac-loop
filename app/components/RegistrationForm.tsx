@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   PayPalScriptProvider,
   PayPalButtons,
@@ -14,6 +14,7 @@ import {
   calculateTotal,
   type PaymentMethod,
 } from "@/app/data/fees";
+import { pricingTiers, getPricingTier, DEFAULT_TIER_ID, USD_TO_IDR_RATE } from "@/app/data/pricing";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 
 type FormState = {
@@ -22,15 +23,12 @@ type FormState = {
   phone: string;
   country: string;
   company: string;
+  ticketType: string;
 };
 
-const EMPTY_FORM: FormState = {
-  name: "",
-  email: "",
-  phone: "",
-  country: "",
-  company: "",
-};
+function emptyForm(ticketType: string): FormState {
+  return { name: "", email: "", phone: "", country: "", company: "", ticketType };
+}
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -65,11 +63,16 @@ const PANEL_BG = "#ffffff";
 const SOFT_BG = "#f1e7d3";
 const BORDER = "#e4dac4";
 
-const BASE_PRICE_IDR = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_IDR ?? 0);
-const BASE_PRICE_USD = Number(process.env.NEXT_PUBLIC_TICKET_PRICE_USD ?? 0);
+// Ticket prices come from the selected pricing tier (Non-Member price only —
+// no membership verification exists yet). Xendit needs IDR, so the USD tier
+// total is converted with a dummy placeholder exchange rate.
+function basePriceUSDFor(tickets: FormState[]): number {
+  return tickets.reduce((sum, ticket) => sum + (getPricingTier(ticket.ticketType)?.nonMemberPrice ?? 0), 0);
+}
 
-function basePriceFor(method: PaymentMethod): number {
-  return method.currency === "IDR" ? BASE_PRICE_IDR : BASE_PRICE_USD;
+function basePriceFor(method: PaymentMethod, tickets: FormState[]): number {
+  const usd = basePriceUSDFor(tickets);
+  return method.currency === "IDR" ? Math.round(usd * USD_TO_IDR_RATE) : usd;
 }
 
 function formatAmount(amount: number, currency: "IDR" | "USD"): string {
@@ -80,11 +83,15 @@ function formatAmount(amount: number, currency: "IDR" | "USD"): string {
 }
 
 function ticketMissingFields(ticket: FormState): string[] {
-  return fields
+  const missing = fields
     .filter(({ key }) =>
       key === "email" ? !EMAIL_PATTERN.test(ticket.email.trim()) : ticket[key].trim() === ""
     )
     .map(({ label }) => label);
+  if (!getPricingTier(ticket.ticketType)) {
+    missing.push("Ticket Type");
+  }
+  return missing;
 }
 
 const xenditMethods = paymentMethods.filter((method) => method.provider === "xendit");
@@ -116,7 +123,9 @@ async function createPayPalOrder(methodId: string, tickets: FormState[]): Promis
 
 export default function RegistrationForm() {
   const router = useRouter();
-  const [tickets, setTickets] = useState<FormState[]>([{ ...EMPTY_FORM }]);
+  const searchParams = useSearchParams();
+  const initialTierId = getPricingTier(searchParams.get("tier") ?? "")?.id ?? DEFAULT_TIER_ID;
+  const [tickets, setTickets] = useState<FormState[]>([emptyForm(initialTierId)]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -136,7 +145,7 @@ export default function RegistrationForm() {
 
   function addTicket() {
     setTickets((current) =>
-      current.length < MAX_TICKETS_PER_ORDER ? [...current, { ...EMPTY_FORM }] : current
+      current.length < MAX_TICKETS_PER_ORDER ? [...current, emptyForm(initialTierId)] : current
     );
   }
 
@@ -244,6 +253,24 @@ export default function RegistrationForm() {
             <p className="text-sm font-semibold" style={{ color: INK }}>
               Attendee {index + 1}
             </p>
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium" style={{ color: INK }}>
+                Ticket Type <span style={{ color: "#c75b39" }}>*</span>
+              </span>
+              <select
+                value={ticket.ticketType}
+                onChange={(event) => updateTicketField(index, "ticketType", event.target.value)}
+                required
+                className="rounded-2xl border px-4 py-2.5 outline-none transition-colors focus:border-[#c75b39]"
+                style={{ backgroundColor: PANEL_BG, borderColor: BORDER, color: INK }}
+              >
+                {pricingTiers.map((tier) => (
+                  <option key={tier.id} value={tier.id}>
+                    {tier.name} — ${tier.nonMemberPrice}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {fields.map(({ key, label, type }) => (
                 <label key={key} className="flex flex-col gap-1.5 text-sm">
@@ -293,14 +320,14 @@ export default function RegistrationForm() {
           <PaymentMethodGroup
             title="Pay with Xendit"
             methods={xenditMethods}
-            quantity={tickets.length}
+            tickets={tickets}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
           <PaymentMethodGroup
             title="Pay with PayPal"
             methods={paypalMethods}
-            quantity={tickets.length}
+            tickets={tickets}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
@@ -312,17 +339,14 @@ export default function RegistrationForm() {
                   Ticket price × {tickets.length}
                 </span>
                 <span style={{ color: INK }}>
-                  {formatAmount(
-                    basePriceFor(selectedMethod) * tickets.length,
-                    selectedMethod.currency
-                  )}
+                  {formatAmount(basePriceFor(selectedMethod, tickets), selectedMethod.currency)}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between text-sm">
                 <span style={{ color: INK_MUTED }}>Payment fee</span>
                 <span style={{ color: INK }}>
                   {formatAmount(
-                    calculateFee(selectedMethod, basePriceFor(selectedMethod) * tickets.length),
+                    calculateFee(selectedMethod, basePriceFor(selectedMethod, tickets)),
                     selectedMethod.currency
                   )}
                 </span>
@@ -336,7 +360,7 @@ export default function RegistrationForm() {
                 </span>
                 <span className="text-lg font-bold" style={{ color: "#c75b39" }}>
                   {formatAmount(
-                    calculateTotal(selectedMethod, basePriceFor(selectedMethod) * tickets.length),
+                    calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets)),
                     selectedMethod.currency
                   )}
                 </span>
@@ -379,13 +403,13 @@ export default function RegistrationForm() {
 function PaymentMethodGroup({
   title,
   methods,
-  quantity,
+  tickets,
   selectedId,
   onSelect,
 }: {
   title: string;
   methods: PaymentMethod[];
-  quantity: number;
+  tickets: FormState[];
   selectedId: string | null;
   onSelect: (method: PaymentMethod) => void;
 }) {
@@ -397,7 +421,7 @@ function PaymentMethodGroup({
       <div className="flex flex-col gap-2">
         {methods.map((method) => {
           const isSelected = selectedId === method.id;
-          const fee = calculateFee(method, basePriceFor(method) * quantity);
+          const fee = calculateFee(method, basePriceFor(method, tickets));
           return (
             <label
               key={method.id}

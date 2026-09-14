@@ -35,6 +35,7 @@ export type Ticket = {
   phone: string;
   country: string;
   company: string;
+  ticket_type: string;
   checked_in_at: string | null;
   created_at: string;
 };

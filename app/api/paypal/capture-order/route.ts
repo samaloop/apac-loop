@@ -78,6 +78,7 @@ export async function POST(request: Request) {
         phone: ticket.phone!.trim(),
         country: ticket.country!.trim(),
         company: ticket.company!.trim(),
+        ticket_type: ticket.ticketType!.trim(),
       }))
     )
     .select("ticket_code, email, full_name");

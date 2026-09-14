@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { event } from "../data/event";
 import SectionHeading from "../components/SectionHeading";
 import RegistrationForm from "../components/RegistrationForm";
@@ -16,7 +17,9 @@ export default function RegisterPage() {
         title="Save your seat"
         description={`${event.date} · ${event.location}. Fill in your details and complete payment to receive your ticket by email.`}
       />
-      <RegistrationForm />
+      <Suspense>
+        <RegistrationForm />
+      </Suspense>
     </div>
   );
 }

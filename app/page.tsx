@@ -39,17 +39,16 @@ export default function Home() {
           />
         </div>
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:py-32">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-start gap-2">
             <Image
               src="/images/logo_apac.webp"
               alt=""
               width={140}
               height={79}
-              className="h-20 w-auto"
+              className="h-12 w-auto sm:h-26"
             />
-            
+            <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
           </div>
-          <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
 
           <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
             {heroTitleLead && <span className="block">{heroTitleLead}</span>}
@@ -107,26 +106,30 @@ export default function Home() {
             <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
               Presented by
             </span>
-            <Image
-              src="/images/logo_apac.webp"
-              alt="Asia Pacific Alliance of Coaches"
-              width={192}
-              height={108}
-              className="h-18 w-auto"
-            />
+            <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/images/logo_apac.webp"
+                alt="Asia Pacific Alliance of Coaches"
+                width={192}
+                height={108}
+                className="h-18 w-auto"
+              />
+            </a>
           </div>
           <div className="hidden h-8 w-px bg-black/[.08] dark:bg-white/[.145] sm:block" />
           <div className="flex items-center gap-3">
             <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
               Official Local Partner
             </span>
-            <Image
-              src="/images/Logo-loop.webp"
-              alt="Loop Institute of Coaching"
-              width={200}
-              height={68}
-              className="h-9 w-auto"
-            />
+            <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/images/Logo-loop.webp"
+                alt="Loop Institute of Coaching"
+                width={200}
+                height={68}
+                className="h-9 w-auto"
+              />
+            </a>
           </div>
         </div>
       </section>

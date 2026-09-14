@@ -8,6 +8,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/agenda", label: "Agenda" },
   { href: "/venue", label: "Venue" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/speakers", label: "Speakers" },
   { href: "/sponsors", label: "Sponsors" },
 ];
@@ -18,13 +19,15 @@ export default function Navbar() {
 
   return (
     <header className="bg-primary text-primary-foreground">
+      {/* Top row: logo, centered from sm up (the mobile toggle is sm:hidden, so
+          the logo is the only child left in this row at that breakpoint) */}
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
           onClick={() => setIsMenuOpen(false)}
           className="flex flex-col leading-tight"
         >
-          <span className="text-lg font-semibold">APAC Coaching Conference 2027</span>
+          <span className="text-lg font-semibold">Asia Pacific Alliance of Coaches Coaching Conference 2027</span>
           <span className="text-xs text-primary-foreground/70">
             Inspiring People . Transforming System . Shaping Society
           </span>
