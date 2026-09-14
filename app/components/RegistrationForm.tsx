@@ -285,6 +285,11 @@ export default function RegistrationForm() {
                     className="rounded-2xl border px-4 py-2.5 outline-none transition-colors focus:border-[#c75b39]"
                     style={{ backgroundColor: PANEL_BG, borderColor: BORDER, color: INK }}
                   />
+                  {key === "email" && (
+                    <span className="text-xs" style={{ color: INK_MUTED }}>
+                      Make sure this is correct — your ticket will be sent to this email.
+                    </span>
+                  )}
                 </label>
               ))}
             </div>
