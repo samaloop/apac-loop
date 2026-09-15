@@ -14,7 +14,13 @@ import {
   calculateTotal,
   type PaymentMethod,
 } from "@/app/data/fees";
-import { pricingTiers, getPricingTier, DEFAULT_TIER_ID, USD_TO_IDR_RATE } from "@/app/data/pricing";
+import {
+  pricingTiers,
+  getPricingTier,
+  tierPriceFor,
+  DEFAULT_TIER_ID,
+  USD_TO_IDR_RATE,
+} from "@/app/data/pricing";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 
 type FormState = {
@@ -24,15 +30,28 @@ type FormState = {
   country: string;
   company: string;
   ticketType: string;
+  isMember: boolean;
+  memberId: string;
 };
 
 function emptyForm(ticketType: string): FormState {
-  return { name: "", email: "", phone: "", country: "", company: "", ticketType };
+  return {
+    name: "",
+    email: "",
+    phone: "",
+    country: "",
+    company: "",
+    ticketType,
+    isMember: false,
+    memberId: "",
+  };
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const fields: { key: keyof FormState; label: string; type: string }[] = [
+type TextFieldKey = "name" | "email" | "phone" | "country" | "company";
+
+const fields: { key: TextFieldKey; label: string; type: string }[] = [
   { key: "name", label: "Full name", type: "text" },
   { key: "email", label: "Email", type: "email" },
   { key: "phone", label: "Phone number", type: "tel" },
@@ -63,11 +82,16 @@ const PANEL_BG = "#ffffff";
 const SOFT_BG = "#f1e7d3";
 const BORDER = "#e4dac4";
 
-// Ticket prices come from the selected pricing tier (Non-Member price only —
-// no membership verification exists yet). Xendit needs IDR, so the USD tier
-// total is converted with a dummy placeholder exchange rate.
+// Ticket prices come from the selected pricing tier, using the Member price
+// when self-declared as a member (no membership lookup exists yet — the
+// discount is applied immediately and reconciled manually later). Xendit
+// needs IDR, so the USD tier total is converted with a dummy placeholder
+// exchange rate.
 function basePriceUSDFor(tickets: FormState[]): number {
-  return tickets.reduce((sum, ticket) => sum + (getPricingTier(ticket.ticketType)?.nonMemberPrice ?? 0), 0);
+  return tickets.reduce((sum, ticket) => {
+    const tier = getPricingTier(ticket.ticketType);
+    return tier ? sum + tierPriceFor(tier, ticket.isMember) : sum;
+  }, 0);
 }
 
 function basePriceFor(method: PaymentMethod, tickets: FormState[]): number {
@@ -90,6 +114,9 @@ function ticketMissingFields(ticket: FormState): string[] {
     .map(({ label }) => label);
   if (!getPricingTier(ticket.ticketType)) {
     missing.push("Ticket Type");
+  }
+  if (ticket.isMember && !ticket.memberId.trim()) {
+    missing.push("Member ID");
   }
   return missing;
 }
@@ -137,9 +164,15 @@ export default function RegistrationForm() {
     .filter(({ missing }) => missing.length > 0);
   const isValid = invalidAttendees.length === 0;
 
-  function updateTicketField(index: number, key: keyof FormState, value: string) {
+  function updateTicketField(index: number, key: TextFieldKey | "ticketType" | "memberId", value: string) {
     setTickets((current) =>
       current.map((ticket, i) => (i === index ? { ...ticket, [key]: value } : ticket))
+    );
+  }
+
+  function setTicketMember(index: number, isMember: boolean) {
+    setTickets((current) =>
+      current.map((ticket, i) => (i === index ? { ...ticket, isMember } : ticket))
     );
   }
 
@@ -266,11 +299,45 @@ export default function RegistrationForm() {
               >
                 {pricingTiers.map((tier) => (
                   <option key={tier.id} value={tier.id}>
-                    {tier.name} — ${tier.nonMemberPrice}
+                    {tier.name} — ${tier.nonMemberPrice} (member ${tier.memberPrice})
                   </option>
                 ))}
               </select>
             </label>
+
+            <div className="flex flex-col gap-2 rounded-2xl p-3" style={{ backgroundColor: SOFT_BG }}>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={ticket.isMember}
+                  onChange={(event) => setTicketMember(index, event.target.checked)}
+                  className="h-4 w-4 accent-[#c75b39]"
+                />
+                <span className="font-medium" style={{ color: INK }}>
+                  I&apos;m an APAC member
+                </span>
+              </label>
+              {ticket.isMember && (
+                <label className="flex flex-col gap-1.5 text-sm">
+                  <span className="font-medium" style={{ color: INK }}>
+                    Member ID <span style={{ color: "#c75b39" }}>*</span>
+                  </span>
+                  <input
+                    type="text"
+                    value={ticket.memberId}
+                    onChange={(event) => updateTicketField(index, "memberId", event.target.value)}
+                    required
+                    className="rounded-2xl border px-4 py-2.5 outline-none transition-colors focus:border-[#c75b39]"
+                    style={{ backgroundColor: PANEL_BG, borderColor: BORDER, color: INK }}
+                  />
+                  <span className="text-xs" style={{ color: INK_MUTED }}>
+                    Membership isn&apos;t verified automatically yet — our team will confirm this
+                    after registration.
+                  </span>
+                </label>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {fields.map(({ key, label, type }) => (
                 <label key={key} className="flex flex-col gap-1.5 text-sm">
@@ -323,15 +390,15 @@ export default function RegistrationForm() {
       {showPayment && (
         <div className="flex flex-col gap-6">
           <PaymentMethodGroup
-            title="Pay with Xendit"
-            methods={xenditMethods}
+            title="Pay with PayPal"
+            methods={paypalMethods}
             tickets={tickets}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
           <PaymentMethodGroup
-            title="Pay with PayPal"
-            methods={paypalMethods}
+            title="Pay with Xendit"
+            methods={xenditMethods}
             tickets={tickets}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}

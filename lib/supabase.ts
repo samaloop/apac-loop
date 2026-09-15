@@ -36,6 +36,8 @@ export type Ticket = {
   country: string;
   company: string;
   ticket_type: string;
+  is_member: boolean;
+  member_id: string | null;
   checked_in_at: string | null;
   created_at: string;
 };

@@ -2,7 +2,7 @@ import { createInvoice } from "@/lib/xendit";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
-import { getPricingTier, USD_TO_IDR_RATE } from "@/app/data/pricing";
+import { getPricingTier, tierPriceFor, USD_TO_IDR_RATE } from "@/app/data/pricing";
 import { event } from "@/app/data/event";
 
 type CreateInvoiceRequestBody = {
@@ -41,13 +41,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Xendit payment is not configured" }, { status: 500 });
   }
 
-  // Ticket type is validated (against pricingTiers) by validateTickets above;
-  // the price used is each tier's Non-Member price (no membership check yet),
-  // converted from USD to IDR via a dummy placeholder exchange rate.
-  const basePriceUSD = tickets.reduce(
-    (sum, ticket) => sum + (getPricingTier(ticket.ticketType)?.nonMemberPrice ?? 0),
-    0
-  );
+  // Ticket type is validated (against pricingTiers) by validateTickets above.
+  // Member status is self-declared (no membership lookup exists yet), so the
+  // member price is applied immediately and reconciled manually later; the
+  // USD tier total is converted to IDR via a dummy placeholder exchange rate.
+  const basePriceUSD = tickets.reduce((sum, ticket) => {
+    const tier = getPricingTier(ticket.ticketType);
+    return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
+  }, 0);
   const basePriceIDR = Math.round(basePriceUSD * USD_TO_IDR_RATE);
   const total = calculateTotal(method, basePriceIDR);
 
@@ -101,6 +102,8 @@ export async function POST(request: Request) {
       country: ticket.country!.trim(),
       company: ticket.company!.trim(),
       ticket_type: ticket.ticketType!.trim(),
+      is_member: Boolean(ticket.isMember),
+      member_id: ticket.isMember ? ticket.memberId!.trim() : null,
     }))
   );
 

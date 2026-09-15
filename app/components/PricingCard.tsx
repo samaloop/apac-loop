@@ -11,12 +11,18 @@ const statusStyles: Record<PricingTier["status"], string> = {
 export default function PricingCard({ tier }: { tier: PricingTier }) {
   return (
     <div
-      className={`flex flex-col gap-5 rounded-3xl border bg-background p-6 dark:bg-[#241c15] ${
+      className={`relative flex flex-col gap-5 rounded-3xl border bg-background p-6 dark:bg-[#241c15] ${
         tier.featured
           ? "border-2 border-accent shadow-lg"
           : "border-black/[.08] dark:border-white/[.145]"
       }`}
     >
+      {tier.badge && (
+        <span className="absolute -right-3 -top-3 rotate-6 animate-pulse rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-gold-foreground shadow-lg">
+          {tier.badge}
+        </span>
+      )}
+
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-xl font-bold text-foreground">{tier.name}</h3>
         <span
@@ -38,7 +44,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
           <div className="flex items-center gap-2">
             <span className="text-sm text-foreground/70">Member APAC</span>
             <span className="rounded-md bg-gold px-2 py-0.5 text-[10px] font-semibold text-gold-foreground">
-              Hemat {tier.memberDiscountPercent}%
+              Save {tier.memberDiscountPercent}%
             </span>
           </div>
           <span className="text-xl font-bold text-accent">
@@ -73,7 +79,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
               : "bg-primary text-primary-foreground"
           }`}
         >
-          Pesan
+          Book Now
         </Link>
       </div>
     </div>

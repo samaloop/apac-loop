@@ -7,6 +7,8 @@ export type RegistrationFields = {
   country?: string;
   company?: string;
   ticketType?: string;
+  isMember?: boolean;
+  memberId?: string;
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -14,7 +16,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const MAX_TICKETS_PER_ORDER = 10;
 
 export function validateRegistrationFields(fields: RegistrationFields): string | null {
-  const { name, email, phone, country, company, ticketType } = fields;
+  const { name, email, phone, country, company, ticketType, isMember, memberId } = fields;
   if (!name?.trim()) return "Name is required";
   if (!email?.trim() || !EMAIL_PATTERN.test(email.trim())) return "A valid email is required";
   if (!phone?.trim()) return "Phone is required";
@@ -23,6 +25,10 @@ export function validateRegistrationFields(fields: RegistrationFields): string |
   if (!ticketType?.trim() || !pricingTiers.some((tier) => tier.id === ticketType)) {
     return "A valid ticket type is required";
   }
+  // Membership isn't verified against anything yet — just collected so the
+  // discount can be reconciled manually later. Still require the ID be
+  // filled in whenever the member discount is being claimed.
+  if (isMember && !memberId?.trim()) return "Member ID is required for member pricing";
   return null;
 }
 

@@ -12,6 +12,9 @@ export type PricingTier = {
   description: string;
   sku: string;
   featured: boolean;
+  // Optional eye-catching corner sticker (e.g. "Limited Time") — leave unset
+  // for tiers that don't need one.
+  badge?: string;
 };
 
 // Dummy pricing — real tier dates/prices to be confirmed later.
@@ -20,25 +23,26 @@ export const pricingTiers: PricingTier[] = [
     id: "super-early-bird",
     name: "Super Early Bird",
     status: "past",
-    statusLabel: "1 Sep – 31 Okt 2026",
+    statusLabel: "Sep 1 – Oct 31, 2026",
     currency: "$",
     nonMemberPrice: 350,
     memberPrice: 298,
     memberDiscountPercent: 15,
-    description: "Harga terbaik, untuk pendaftar paling awal.",
+    description: "Our best price, for the earliest registrants.",
     sku: "APAC-SEB-2027",
     featured: false,
+    badge: "Limited Time",
   },
   {
     id: "early-bird",
     name: "Early Bird",
     status: "active",
-    statusLabel: "SEDANG BERLANGSUNG",
+    statusLabel: "ON SALE NOW",
     currency: "$",
     nonMemberPrice: 425,
     memberPrice: 360,
     memberDiscountPercent: 15,
-    description: "1 Nov 2026 – 31 Jan 2027. Fase paling banyak dipilih.",
+    description: "Nov 1, 2026 – Jan 31, 2027. Our most popular phase.",
     sku: "APAC-EB-2027",
     featured: true,
   },
@@ -46,26 +50,33 @@ export const pricingTiers: PricingTier[] = [
     id: "regular",
     name: "Regular",
     status: "upcoming",
-    statusLabel: "MULAI 1 FEB 2027",
+    statusLabel: "STARTS FEB 1, 2027",
     currency: "$",
     nonMemberPrice: 500,
     memberPrice: 425,
     memberDiscountPercent: 15,
-    description: "Berlaku sampai hari pelaksanaan acara.",
+    description: "Valid through the day of the event.",
     sku: "APAC-RG-2027",
     featured: false,
   },
 ];
 
 export const pricingFeatures = [
-  "Akses 3 hari sesi utama",
-  "Materi & goodie bag",
-  "Makan siang & kopi",
-  "Sertifikat partisipasi",
+  "Access to all 3 days of main sessions",
+  "Materials & goodie bag",
+  "Lunch & coffee breaks",
+  "Certificate of participation",
 ];
 
 export function getPricingTier(id: string): PricingTier | undefined {
   return pricingTiers.find((tier) => tier.id === id);
+}
+
+// Member status is self-declared on the form — there's no membership lookup
+// yet, so this price is applied immediately and reconciled manually later
+// (see the Member ID collected alongside it).
+export function tierPriceFor(tier: PricingTier, isMember: boolean): number {
+  return isMember ? tier.memberPrice : tier.nonMemberPrice;
 }
 
 export const DEFAULT_TIER_ID = "early-bird";
@@ -78,5 +89,5 @@ export const groupRate = {
   minPeople: 3,
   discountPercent: 10,
   description:
-    "Daftar bersama 3 orang atau lebih dari organisasi/tim yang sama, dan dapatkan tambahan diskon di luar harga tier yang berlaku. Hubungi tim kami untuk pendaftaran grup.",
+    "Register together with 3 or more people from the same organization/team and get an extra discount on top of the applicable tier price. Contact our team for group registration.",
 };

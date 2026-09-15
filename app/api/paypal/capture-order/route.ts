@@ -79,6 +79,8 @@ export async function POST(request: Request) {
         country: ticket.country!.trim(),
         company: ticket.company!.trim(),
         ticket_type: ticket.ticketType!.trim(),
+        is_member: Boolean(ticket.isMember),
+        member_id: ticket.isMember ? ticket.memberId!.trim() : null,
       }))
     )
     .select("ticket_code, email, full_name");
@@ -120,6 +122,8 @@ export async function POST(request: Request) {
       country: ticket.country!.trim(),
       company: ticket.company!.trim(),
       ticketCode: insertedTickets[index]?.ticket_code ?? "unknown",
+      isMember: Boolean(ticket.isMember),
+      memberId: ticket.isMember ? ticket.memberId!.trim() : null,
     })),
   });
 

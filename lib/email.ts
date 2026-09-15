@@ -154,6 +154,8 @@ export type AdminNotificationAttendee = {
   country: string;
   company: string;
   ticketCode: string;
+  isMember: boolean;
+  memberId: string | null;
 };
 
 function buildAdminNotificationHtml({
@@ -172,6 +174,7 @@ function buildAdminNotificationHtml({
         <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.phone)}</td>
         <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.country)}</td>
         <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${escapeHtml(attendee.company)}</td>
+        <td style="padding:8px 12px; border-bottom:1px solid #e4dac4;">${attendee.isMember ? `Yes — ${escapeHtml(attendee.memberId ?? "")}` : "No"}</td>
         <td style="padding:8px 12px; border-bottom:1px solid #e4dac4; font-family:monospace; font-size:12px;">${escapeHtml(attendee.ticketCode)}</td>
       </tr>`
     )
@@ -194,6 +197,7 @@ function buildAdminNotificationHtml({
             <th style="padding:8px 12px;">Phone</th>
             <th style="padding:8px 12px;">Country</th>
             <th style="padding:8px 12px;">Company</th>
+            <th style="padding:8px 12px;">Member</th>
             <th style="padding:8px 12px;">Ticket code</th>
           </tr>
         </thead>

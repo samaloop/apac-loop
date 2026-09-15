@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
   const { data: tickets, error: ticketsError } = await supabase
     .from("tickets")
-    .select("ticket_code, email, full_name, phone, country, company")
+    .select("ticket_code, email, full_name, phone, country, company, is_member, member_id")
     .eq("order_id", order.id);
 
   if (ticketsError || !tickets) {
@@ -125,6 +125,8 @@ export async function POST(request: Request) {
       country: ticket.country,
       company: ticket.company,
       ticketCode: ticket.ticket_code,
+      isMember: ticket.is_member,
+      memberId: ticket.member_id,
     })),
   });
 
