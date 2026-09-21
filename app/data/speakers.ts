@@ -16,7 +16,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 1",
     role: "Keynote Speaker",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "With over a decade of experience guiding leaders through organizational change, Speaker 1 blends evidence-based coaching methods with real-world business acumen to help teams navigate uncertainty and grow.",
     initials: "S1",
   },
   {
@@ -24,7 +24,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 2",
     role: "Keynote Speaker",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "A sought-after voice in executive coaching, Speaker 2 has worked with senior leaders across Asia Pacific to build resilient, high-performing cultures rooted in trust and accountability.",
     initials: "S2",
   },
   {
@@ -32,7 +32,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 3",
     role: "Panel Speaker",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "Speaker 3 specializes in cross-cultural coaching practices, helping organizations bridge communication gaps and build inclusive leadership pipelines across diverse teams.",
     initials: "S3",
   },
   {
@@ -40,7 +40,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 4",
     role: "Panel Speaker",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "Drawing on a background in psychology and organizational development, Speaker 4 explores how coaching can drive sustainable behavioral change at both the individual and systemic level.",
     initials: "S4",
   },
   {
@@ -48,7 +48,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 5",
     role: "Workshop Facilitator",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "Speaker 5 designs hands-on coaching workshops that turn theory into practice, equipping participants with practical tools they can apply the moment they leave the room.",
     initials: "S5",
   },
   {
@@ -56,7 +56,7 @@ const rawSpeakers: Omit<Speaker, "color">[] = [
     name: "Speaker 6",
     role: "Workshop Facilitator",
     company: "Coaching Organization",
-    bio: "Speaker bio coming soon.",
+    bio: "A certified coach and trainer, Speaker 6 focuses on building coaching capability within organizations, helping managers become better everyday coaches to their teams.",
     initials: "S6",
   },
 ];

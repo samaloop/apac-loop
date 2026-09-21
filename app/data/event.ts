@@ -3,6 +3,9 @@ export const event = {
   tagline: "APAC Coaching Conference 2027",
   organizer: "Asia Pacific Alliance of Coaches",
   date: "September, 2027",
+  // Placeholder exact date/time (WITA, UTC+8) for the countdown timer —
+  // update once the specific event day is confirmed.
+  startDateISO: "2027-09-15T09:00:00+08:00",
   location: "Bali, Indonesia",
   description:
     "Inspiring People . Transforming System . Shaping Society",
