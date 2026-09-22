@@ -4,8 +4,8 @@ import SectionHeading from "../components/SectionHeading";
 import AgendaDay from "../components/AgendaDay";
 
 export const metadata: Metadata = {
-  title: "Agenda | Loop Coaching Summit 2026",
-  description: "Day 1 and Day 2 schedule for Loop Coaching Summit 2026.",
+  title: "Agenda | APAC Coaching Conference 2027",
+  description: "Day 1 and Day 2 schedule for APAC Coaching Conference 2027.",
 };
 
 export default function AgendaPage() {

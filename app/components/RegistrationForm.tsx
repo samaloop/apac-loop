@@ -20,6 +20,7 @@ import {
   tierPriceFor,
   DEFAULT_TIER_ID,
   USD_TO_IDR_RATE,
+  formatIDR,
 } from "@/app/data/pricing";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 
@@ -299,7 +300,7 @@ export default function RegistrationForm() {
               >
                 {pricingTiers.map((tier) => (
                   <option key={tier.id} value={tier.id}>
-                    {tier.name} — ${tier.nonMemberPrice} (member ${tier.memberPrice})
+                    {tier.name} — {formatIDR(tier.nonMemberPrice)} (member {formatIDR(tier.memberPrice)})
                   </option>
                 ))}
               </select>

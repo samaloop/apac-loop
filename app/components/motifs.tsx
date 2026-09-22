@@ -42,6 +42,44 @@ export function PalmFrond({ className }: { className?: string }) {
   );
 }
 
+// A simplified Balinese "patra" (ornamental carving) motif — a vertical
+// stem with a diamond leaf-bud unit, tiled down the page as a subtle side
+// border. Rendered as a repeating background-image (color baked into the
+// SVG itself) rather than a CSS mask, since background-image tiling has
+// the most consistent cross-browser support.
+function patraTileSvg(color: string): string {
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 96'>` +
+    `<line x1='16' y1='0' x2='16' y2='96' stroke='${color}' stroke-width='1.5' stroke-opacity='0.7'/>` +
+    `<path d='M16 32 L24 48 L16 64 L8 48 Z' fill='none' stroke='${color}' stroke-width='1.8' stroke-linejoin='round'/>` +
+    `<circle cx='16' cy='48' r='3' fill='${color}'/>` +
+    `</svg>`
+  );
+}
+
+export function PatraSideBorder({
+  className,
+  color = "#d9a441",
+}: {
+  className?: string;
+  color?: string;
+}) {
+  const encodedColor = color.replace("#", "%23");
+  const svg = patraTileSvg(encodedColor);
+  return (
+    <div
+      aria-hidden
+      className={className}
+      style={{
+        backgroundImage: `url("data:image/svg+xml,${svg}")`,
+        backgroundRepeat: "repeat-y",
+        backgroundSize: "32px 96px",
+        backgroundPosition: "top center",
+      }}
+    />
+  );
+}
+
 // Generic person silhouette used as a placeholder "photo" for speakers/
 // committee members until real portraits are available.
 export function PersonIcon({ className }: { className?: string }) {

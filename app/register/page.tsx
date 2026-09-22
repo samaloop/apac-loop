@@ -5,8 +5,8 @@ import SectionHeading from "../components/SectionHeading";
 import RegistrationForm from "../components/RegistrationForm";
 
 export const metadata: Metadata = {
-  title: "Register | Loop Coaching Summit 2026",
-  description: "Register for Loop Coaching Summit 2026.",
+  title: "Register | APAC Coaching Conference 2027",
+  description: "Register for APAC Coaching Conference 2027.",
 };
 
 export default function RegisterPage() {

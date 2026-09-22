@@ -1,16 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { event } from "./data/event";
-import { speakers } from "./data/speakers";
-import { sponsorTiers } from "./data/sponsors";
 import SectionHeading from "./components/SectionHeading";
-import SpeakerCard from "./components/SpeakerCard";
 import { WaveDivider } from "./components/motifs";
 
 export default function Home() {
-  const featuredSpeakers = speakers.slice(0, 3);
-  const platinumSponsors = sponsorTiers[0]?.sponsors ?? [];
-
   // Split the event name so the last word gets the gold-gradient treatment,
   // matching the poster's "THE NEXT" (plain) / "FRONTIER" (gold) layout.
   const nameParts = event.name.split(" ");
@@ -186,44 +180,42 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-20">
           <SectionHeading
             eyebrow="Featured Speakers"
-            title="Learn from practitioners shaping coaching in Indonesia"
+            title="Keynote Speakers"
+            description="Visionary voices from coaching, leadership, organizational transformation, and society — to be announced."
           />
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredSpeakers.map((speaker) => (
-              <SpeakerCard key={speaker.id} speaker={speaker} />
-            ))}
+          <div className="rounded-3xl border border-dashed border-black/[.15] bg-background px-8 py-14 text-center dark:border-white/[.2] dark:bg-[#241c15]">
+            <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+              Coming Soon
+            </p>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/70">
+              We&apos;re confirming an outstanding keynote lineup for APAC Coaching Conference
+              2027. Check back soon.
+            </p>
           </div>
-          <Link
-            href="/speakers"
-            className="w-fit text-sm font-semibold text-accent hover:underline"
-          >
-            View all speakers &rarr;
-          </Link>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="flex flex-col gap-10">
           <SectionHeading
-            eyebrow="Our Sponsors"
-            title="Backed by organizations investing in coaching"
+            eyebrow="Partners & Sponsors"
+            title="Partnership opportunities are now open"
+            description="Join organizations investing in the future of coaching across Asia Pacific."
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {platinumSponsors.map((sponsor) => (
-              <div
-                key={sponsor.id}
-                className="flex h-24 items-center justify-center rounded-2xl border border-black/[.08] bg-background px-4 text-center text-sm font-medium text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
-              >
-                {sponsor.name}
-              </div>
-            ))}
+          <div className="flex flex-col items-start gap-4 rounded-3xl border border-black/[.08] bg-background p-8 dark:border-white/[.145] dark:bg-[#241c15] sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-foreground/70">
+              Get in touch with the team to learn about sponsorship and partnership packages for
+              APAC Coaching Conference 2027.
+            </p>
+            <a
+              href={`https://wa.me/${event.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 shrink-0 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+            >
+              Become a Partner
+            </a>
           </div>
-          <Link
-            href="/sponsors"
-            className="w-fit text-sm font-semibold text-accent hover:underline"
-          >
-            View all sponsors &rarr;
-          </Link>
         </div>
       </section>
 

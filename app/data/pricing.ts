@@ -5,7 +5,9 @@ export type PricingTier = {
   name: string;
   status: PricingTierStatus;
   statusLabel: string;
-  currency: string;
+  // Stored in USD — the source of truth PayPal/Xendit charges are computed
+  // from (see tierPriceFor). Displayed converted to Rupiah everywhere
+  // (formatIDR) except the PayPal checkout step, which genuinely bills USD.
   nonMemberPrice: number;
   memberPrice: number;
   memberDiscountPercent: number;
@@ -24,7 +26,6 @@ export const pricingTiers: PricingTier[] = [
     name: "Super Early Bird",
     status: "past",
     statusLabel: "Sep 1 – Oct 31, 2026",
-    currency: "$",
     nonMemberPrice: 350,
     memberPrice: 298,
     memberDiscountPercent: 15,
@@ -38,7 +39,6 @@ export const pricingTiers: PricingTier[] = [
     name: "Early Bird",
     status: "active",
     statusLabel: "ON SALE NOW",
-    currency: "$",
     nonMemberPrice: 425,
     memberPrice: 360,
     memberDiscountPercent: 15,
@@ -51,7 +51,6 @@ export const pricingTiers: PricingTier[] = [
     name: "Regular",
     status: "upcoming",
     statusLabel: "STARTS FEB 1, 2027",
-    currency: "$",
     nonMemberPrice: 500,
     memberPrice: 425,
     memberDiscountPercent: 15,
@@ -84,6 +83,13 @@ export const DEFAULT_TIER_ID = "early-bird";
 // Dummy placeholder rate for converting the USD-denominated tier prices into
 // IDR for Xendit — replace with a real FX source before taking live payments.
 export const USD_TO_IDR_RATE = 15800;
+
+// Tier prices are stored in USD (the source of truth PayPal/Xendit pricing
+// is computed from), but displayed to browsing users in Rupiah everywhere
+// except the PayPal checkout step itself, which genuinely charges in USD.
+export function formatIDR(usdAmount: number): string {
+  return `Rp ${Math.round(usdAmount * USD_TO_IDR_RATE).toLocaleString("id-ID")}`;
+}
 
 export const groupRate = {
   minPeople: 3,

@@ -13,7 +13,7 @@ export type AgendaDayData = {
 export const agenda: AgendaDayData[] = [
   {
     day: "Day 1",
-    date: "22 September 2026",
+    date: "22 September 2027",
     sessions: [
       {
         time: "08:00",
@@ -49,7 +49,7 @@ export const agenda: AgendaDayData[] = [
   },
   {
     day: "Day 2",
-    date: "23 September 2026",
+    date: "23 September 2027",
     sessions: [
       {
         time: "08:30",

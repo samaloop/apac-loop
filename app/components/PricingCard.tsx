@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { PricingTier } from "@/app/data/pricing";
-import { pricingFeatures } from "@/app/data/pricing";
+import { pricingFeatures, formatIDR } from "@/app/data/pricing";
 
 const statusStyles: Record<PricingTier["status"], string> = {
   past: "bg-surface-muted text-foreground/50 line-through",
@@ -32,24 +32,22 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-foreground/60">Non-Member</span>
-          <span className="text-lg font-semibold text-foreground">
-            {tier.currency}
-            {tier.nonMemberPrice}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-foreground/60">Non-Member</span>
+          <span className="whitespace-nowrap text-xl font-semibold text-foreground">
+            {formatIDR(tier.nonMemberPrice)}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-2xl bg-surface-muted px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-2xl bg-surface-muted px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="text-sm text-foreground/70">Member APAC</span>
             <span className="rounded-md bg-gold px-2 py-0.5 text-[10px] font-semibold text-gold-foreground">
               Save {tier.memberDiscountPercent}%
             </span>
           </div>
-          <span className="text-xl font-bold text-accent">
-            {tier.currency}
-            {tier.memberPrice}
+          <span className="whitespace-nowrap text-xl font-bold text-accent">
+            {formatIDR(tier.memberPrice)}
           </span>
         </div>
       </div>
