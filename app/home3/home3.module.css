@@ -1,0 +1,60 @@
+.page {
+  /* Editorial palette for everything after the Hero — deliberately distinct
+     from the site's navy/gold so the Hero stays untouched while the rest of
+     the page shifts into a calmer, premium-conference register. No orange/
+     terracotta here on purpose — that accent stays scoped to the Hero. */
+  --charcoal: #211f1c;
+  --charcoal-2: #2a2723;
+  --ivory: #f7f2e7;
+  --ink: #262320;
+  --ink-muted: #6b6355;
+  --forest: #33443a;
+  --forest-2: #3d5245;
+  --sand: #ece1c7;
+  --on-dark: #f3ede0;
+  --on-dark-muted: rgba(243, 237, 224, 0.68);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+}
+
+.serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section background/foreground pairs — the visual "rhythm" the brief asks
+   for, applied as one class per section instead of repeated inline styles. */
+.onCharcoal { background: var(--charcoal); color: var(--on-dark); }
+.onCharcoal2 { background: var(--charcoal-2); color: var(--on-dark); }
+.onIvory { background: var(--ivory); color: var(--ink); }
+.onForest { background: var(--forest); color: var(--on-dark); }
+.onSand { background: var(--sand); color: var(--ink); }
+
+.muted { color: var(--ink-muted); }
+.mutedOnDark { color: var(--on-dark-muted); }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.hairline { border-top: 1px solid currentColor; opacity: 0.15; }
+

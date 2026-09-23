@@ -41,7 +41,7 @@ export default function Home2Page() {
       <PatraSideBorder className="pointer-events-none absolute inset-y-0 left-4 z-50 hidden w-8 opacity-20 lg:block" />
       <PatraSideBorder className="pointer-events-none absolute inset-y-0 right-4 z-50 hidden w-8 opacity-20 lg:block" />
 
-      {/* 1. Hero */}
+      {/* 1. Hero — same design as /home3, with brighter background/dancer opacity */}
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
         <div className="absolute inset-0 z-0">
           <Image
@@ -50,7 +50,7 @@ export default function Home2Page() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[30%_center] opacity-30 sm:object-center"
+            className="object-cover object-[30%_center] opacity-45 sm:object-center"
           />
           <Image
             src="/images/hero-dancer.webp"
@@ -58,23 +58,17 @@ export default function Home2Page() {
             width={384}
             height={352}
             priority
-            className="pointer-events-none absolute bottom-0 left-0 h-auto w-32 opacity-40 sm:w-40 md:w-56 lg:w-72"
+            className="pointer-events-none absolute bottom-0 left-0 h-auto w-56 opacity-45 sm:w-72 md:w-96 lg:w-[26rem]"
           />
         </div>
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:py-32">
           <div className="flex flex-col items-start gap-2">
-            <Image
-              src="/images/logo_apac.webp"
-              alt=""
-              width={140}
-              height={79}
-              className="h-12 w-auto sm:h-26"
-            />
+            <Image src="/images/logo_apac.webp" alt="" width={140} height={79} className="h-24 w-auto sm:h-40" />
             <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
           </div>
 
-          <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
-            {heroTitleLead && <span className="block">{heroTitleLead}</span>}
+          <h1 className="max-w-4xl text-6xl font-extrabold uppercase leading-[0.9] tracking-tight sm:text-9xl">
+            <span className="block">{heroTitleLead}</span>
             <span
               className="block bg-clip-text text-transparent"
               style={{ backgroundImage: "linear-gradient(90deg, #f2c14e, #c75b39)" }}
@@ -83,13 +77,7 @@ export default function Home2Page() {
             </span>
           </h1>
 
-          <p className="max-w-2xl text-base leading-7 text-primary-foreground/70">
-            {event.description}
-          </p>
-          <p className="max-w-2xl text-base leading-7 text-primary-foreground/70">
-            Where coaches, leaders and changemakers across Asia Pacific come together to explore
-            what&apos;s next for coaching, leadership and society.
-          </p>
+          <p className="max-w-2xl text-base leading-7 text-primary-foreground/70">{event.description}</p>
 
           <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-primary-foreground/90">
             <span className="flex items-center gap-2">
@@ -121,7 +109,6 @@ export default function Home2Page() {
             </Link>
           </div>
         </div>
-        <WaveDivider className="relative z-10 block h-10 w-full sm:h-16" color="var(--background)" />
       </section>
 
       {/* 2. Why This Conference */}

@@ -18,24 +18,31 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // /home2 and /home3 are comparison sandboxes that share a bigger-header
+  // treatment — scoped here so the live site's header everywhere else is
+  // untouched.
+  const isHome2 = pathname === "/home2" || pathname === "/home3";
+
   return (
     <header className="bg-primary text-primary-foreground">
       {/* Top row: logo, centered from sm up (the mobile toggle is sm:hidden, so
           the logo is the only child left in this row at that breakpoint) */}
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      <div className={`mx-auto flex w-full max-w-6xl items-center justify-between px-6 ${isHome2 ? "py-5" : "py-4"}`}>
         <Link
           href="/"
           onClick={() => setIsMenuOpen(false)}
           className="flex flex-col leading-tight"
         >
-          <span className="text-lg font-semibold">Asia Pacific Alliance of Coaches Coaching Conference 2027</span>
-          <span className="text-xs text-primary-foreground/70">
+          <span className={isHome2 ? "text-2xl font-semibold" : "text-lg font-semibold"}>
+            Asia Pacific Alliance of Coaches Coaching Conference 2027
+          </span>
+          <span className={isHome2 ? "text-sm text-primary-foreground/70" : "text-xs text-primary-foreground/70"}>
             Inspiring People . Transforming System . Shaping Society
           </span>
         </Link>
 
         {/* Desktop nav: hidden below sm, shown as a row from sm up */}
-        <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
+        <nav className={`hidden items-center gap-6 font-medium sm:flex ${isHome2 ? "text-base" : "text-sm"}`}>
           {links.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -52,7 +59,9 @@ export default function Navbar() {
           })}
           <Link
             href="/register"
-            className="rounded-full bg-accent px-4 py-1.5 text-accent-foreground transition-colors hover:bg-accent/90"
+            className={`rounded-full bg-accent text-accent-foreground transition-colors hover:bg-accent/90 ${
+              isHome2 ? "px-5 py-2" : "px-4 py-1.5"
+            }`}
           >
             Register
           </Link>
