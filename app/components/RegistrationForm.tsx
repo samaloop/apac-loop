@@ -22,6 +22,7 @@ import {
   USD_TO_IDR_RATE,
   formatIDR,
 } from "@/app/data/pricing";
+import { promoDiscountUSD, describePromo, type AppliedPromo } from "@/app/data/promo";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 
 type FormState = {
@@ -95,9 +96,25 @@ function basePriceUSDFor(tickets: FormState[]): number {
   }, 0);
 }
 
-function basePriceFor(method: PaymentMethod, tickets: FormState[]): number {
-  const usd = basePriceUSDFor(tickets);
+function toMethodCurrency(method: PaymentMethod, usd: number): number {
   return method.currency === "IDR" ? Math.round(usd * USD_TO_IDR_RATE) : usd;
+}
+
+// Ticket subtotal before any promo code, in the method's currency.
+function subtotalFor(method: PaymentMethod, tickets: FormState[]): number {
+  return toMethodCurrency(method, basePriceUSDFor(tickets));
+}
+
+// What the payment fee and total are computed on — the subtotal minus the
+// promo discount, converted the same way the server does (USD first, then
+// IDR) so the preview matches the amount actually charged.
+function basePriceFor(
+  method: PaymentMethod,
+  tickets: FormState[],
+  promo: AppliedPromo | null
+): number {
+  const subtotalUSD = basePriceUSDFor(tickets);
+  return toMethodCurrency(method, subtotalUSD - promoDiscountUSD(promo, subtotalUSD));
 }
 
 function formatAmount(amount: number, currency: "IDR" | "USD"): string {
@@ -136,11 +153,15 @@ function ErrorNotice({ children }: { children: ReactNode }) {
   );
 }
 
-async function createPayPalOrder(methodId: string, tickets: FormState[]): Promise<string> {
+async function createPayPalOrder(
+  methodId: string,
+  tickets: FormState[],
+  promoCode: string | undefined
+): Promise<string> {
   const response = await fetch("/api/paypal/create-order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ method: methodId, tickets }),
+    body: JSON.stringify({ method: methodId, tickets, promoCode }),
   });
   const data = (await response.json()) as { id?: string; error?: string };
   if (!data.id) {
@@ -159,6 +180,10 @@ export default function RegistrationForm() {
   const [showPayment, setShowPayment] = useState(false);
   const [xenditLoading, setXenditLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const invalidAttendees = tickets
     .map((ticket, index) => ({ index, missing: ticketMissingFields(ticket) }))
@@ -213,6 +238,35 @@ export default function RegistrationForm() {
     setSubmitting(false);
   }
 
+  async function applyPromo() {
+    if (!promoInput.trim()) return;
+    setPromoError(null);
+    setPromoLoading(true);
+    try {
+      const response = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput }),
+      });
+      const result = (await response.json()) as { promo?: AppliedPromo; error?: string };
+      if (!result.promo) {
+        setPromoError(result.error ?? "This promo code is not valid");
+        return;
+      }
+      setAppliedPromo(result.promo);
+      setPromoInput("");
+    } catch {
+      setPromoError("Couldn't check this promo code. Please try again.");
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  function removePromo() {
+    setAppliedPromo(null);
+    setPromoError(null);
+  }
+
   async function payWithXendit() {
     if (!selectedMethod) return;
     setError(null);
@@ -221,7 +275,11 @@ export default function RegistrationForm() {
       const response = await fetch("/api/xendit/create-invoice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tickets, method: selectedMethod.id }),
+        body: JSON.stringify({
+          tickets,
+          method: selectedMethod.id,
+          promoCode: appliedPromo?.code,
+        }),
       });
       const result = (await response.json()) as { invoiceUrl?: string; error?: string };
       if (!result.invoiceUrl) {
@@ -394,6 +452,7 @@ export default function RegistrationForm() {
             title="Pay with PayPal"
             methods={paypalMethods}
             tickets={tickets}
+            promo={appliedPromo}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
@@ -401,9 +460,71 @@ export default function RegistrationForm() {
             title="Pay with Xendit"
             methods={xenditMethods}
             tickets={tickets}
+            promo={appliedPromo}
             selectedId={selectedMethod?.id ?? null}
             onSelect={setSelectedMethod}
           />
+
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: INK_MUTED }}>
+              Promo code
+            </p>
+            {appliedPromo ? (
+              <div
+                className="flex items-center justify-between gap-4 rounded-2xl border px-4 py-3"
+                style={{ borderColor: "#c75b39", backgroundColor: "#c75b390d" }}
+              >
+                <div>
+                  <p className="font-mono text-sm font-semibold" style={{ color: INK }}>
+                    {appliedPromo.code}
+                  </p>
+                  <p className="text-xs" style={{ color: INK_MUTED }}>
+                    {describePromo(appliedPromo)} applied
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={removePromo}
+                  disabled={submitting || xenditLoading}
+                  className="text-sm font-semibold underline disabled:opacity-50"
+                  style={{ color: "#c75b39" }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(event) => setPromoInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      applyPromo();
+                    }
+                  }}
+                  placeholder="Enter promo code"
+                  className="min-w-0 flex-1 rounded-2xl border px-4 py-2.5 text-sm uppercase outline-none transition-colors focus:border-[#c75b39]"
+                  style={{ backgroundColor: PANEL_BG, borderColor: BORDER, color: INK }}
+                />
+                <button
+                  type="button"
+                  onClick={applyPromo}
+                  disabled={promoLoading || !promoInput.trim()}
+                  className="shrink-0 rounded-full border px-5 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ borderColor: INK, color: INK }}
+                >
+                  {promoLoading ? "Checking…" : "Apply"}
+                </button>
+              </div>
+            )}
+            {promoError && (
+              <p className="text-xs font-medium" style={{ color: "#c75b39" }}>
+                {promoError}
+              </p>
+            )}
+          </div>
 
           {selectedMethod && (
             <div className="rounded-2xl p-5" style={{ backgroundColor: SOFT_BG }}>
@@ -412,14 +533,27 @@ export default function RegistrationForm() {
                   Ticket price × {tickets.length}
                 </span>
                 <span style={{ color: INK }}>
-                  {formatAmount(basePriceFor(selectedMethod, tickets), selectedMethod.currency)}
+                  {formatAmount(subtotalFor(selectedMethod, tickets), selectedMethod.currency)}
                 </span>
               </div>
+              {appliedPromo && (
+                <div className="mt-1 flex items-center justify-between text-sm">
+                  <span style={{ color: INK_MUTED }}>Promo ({appliedPromo.code})</span>
+                  <span style={{ color: "#c75b39" }}>
+                    −
+                    {formatAmount(
+                      subtotalFor(selectedMethod, tickets) -
+                        basePriceFor(selectedMethod, tickets, appliedPromo),
+                      selectedMethod.currency
+                    )}
+                  </span>
+                </div>
+              )}
               <div className="mt-1 flex items-center justify-between text-sm">
                 <span style={{ color: INK_MUTED }}>Payment fee</span>
                 <span style={{ color: INK }}>
                   {formatAmount(
-                    calculateFee(selectedMethod, basePriceFor(selectedMethod, tickets)),
+                    calculateFee(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo)),
                     selectedMethod.currency
                   )}
                 </span>
@@ -433,7 +567,7 @@ export default function RegistrationForm() {
                 </span>
                 <span className="text-lg font-bold" style={{ color: "#c75b39" }}>
                   {formatAmount(
-                    calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets)),
+                    calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo)),
                     selectedMethod.currency
                   )}
                 </span>
@@ -458,9 +592,12 @@ export default function RegistrationForm() {
               <PayPalButtons
                 disabled={submitting}
                 style={{ layout: "vertical", color: "gold", shape: "pill" }}
+                // Re-mount the buttons when the promo changes so createOrder
+                // isn't stuck with the code from the first render.
+                forceReRender={[appliedPromo?.code ?? ""]}
                 createOrder={() => {
                   setError(null);
-                  return createPayPalOrder(selectedMethod.id, tickets);
+                  return createPayPalOrder(selectedMethod.id, tickets, appliedPromo?.code);
                 }}
                 onApprove={(data) => capturePayment(data.orderID)}
                 onError={handlePaymentError}
@@ -477,12 +614,14 @@ function PaymentMethodGroup({
   title,
   methods,
   tickets,
+  promo,
   selectedId,
   onSelect,
 }: {
   title: string;
   methods: PaymentMethod[];
   tickets: FormState[];
+  promo: AppliedPromo | null;
   selectedId: string | null;
   onSelect: (method: PaymentMethod) => void;
 }) {
@@ -494,7 +633,7 @@ function PaymentMethodGroup({
       <div className="flex flex-col gap-2">
         {methods.map((method) => {
           const isSelected = selectedId === method.id;
-          const fee = calculateFee(method, basePriceFor(method, tickets));
+          const fee = calculateFee(method, basePriceFor(method, tickets, promo));
           return (
             <label
               key={method.id}

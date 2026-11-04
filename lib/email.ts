@@ -145,6 +145,7 @@ export type AdminNotificationOrder = {
   currency: string;
   paymentReference: string;
   quantity: number;
+  promoCode?: string | null;
 };
 
 export type AdminNotificationAttendee = {
@@ -188,6 +189,7 @@ function buildAdminNotificationHtml({
         <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Quantity</td><td style="padding:4px 0;">${order.quantity} ticket${order.quantity > 1 ? "s" : ""}</td></tr>
         <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Provider</td><td style="padding:4px 0;">${escapeHtml(order.provider)}</td></tr>
         <tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Payment reference</td><td style="padding:4px 0; font-family:monospace; font-size:12px;">${escapeHtml(order.paymentReference)}</td></tr>
+        ${order.promoCode ? `<tr><td style="padding:4px 12px 4px 0; color:#6b6250;">Promo code</td><td style="padding:4px 0; font-family:monospace; font-size:12px;">${escapeHtml(order.promoCode)}</td></tr>` : ""}
       </table>
       <table style="border-collapse:collapse; width:100%; font-size:13px;">
         <thead>

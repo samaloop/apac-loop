@@ -49,8 +49,8 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`transition-colors hover:text-accent ${
-                  isActive ? "text-accent" : "text-primary-foreground/80"
+                className={`transition-colors hover:text-accent-bright ${
+                  isActive ? "text-accent-bright" : "text-primary-foreground/80"
                 }`}
               >
                 {link.label}
@@ -99,7 +99,7 @@ export default function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
                 className={`rounded-xl px-3 py-2.5 transition-colors ${
                   isActive
-                    ? "bg-primary-foreground/10 text-accent"
+                    ? "bg-primary-foreground/10 text-accent-bright"
                     : "text-primary-foreground/80 hover:bg-primary-foreground/10"
                 }`}
               >

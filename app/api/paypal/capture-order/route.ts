@@ -1,7 +1,10 @@
 import { captureOrder } from "@/lib/paypal";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
+import { findPromoCode, redeemPromoCode, toAppliedPromo } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
+import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
+import { promoDiscountUSD } from "@/app/data/promo";
 
 type CaptureRequestBody = {
   orderID?: string;
@@ -37,6 +40,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // The promo code comes back from PayPal itself (set as custom_id at
+  // create-order), so it reflects the discount actually priced into this
+  // payment. Looked up without re-checking validity — the payment already
+  // happened at that price, this is only for the record.
+  const promo = capture.customId ? await findPromoCode(capture.customId) : null;
+  const basePrice = tickets.reduce((sum, ticket) => {
+    const tier = getPricingTier(ticket.ticketType);
+    return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
+  }, 0);
+  const discountAmount = promo ? promoDiscountUSD(toAppliedPromo(promo), basePrice) : 0;
+
   const supabase = getSupabaseServerClient();
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -52,6 +66,8 @@ export async function POST(request: Request) {
       payment_provider: "paypal",
       payment_status: "paid",
       payment_reference: body.orderID,
+      promo_code: promo?.code ?? null,
+      discount_amount: discountAmount,
     })
     .select("id")
     .single();
@@ -66,6 +82,10 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
+  }
+
+  if (promo) {
+    await redeemPromoCode(promo.code);
   }
 
   const { data: insertedTickets, error: ticketsInsertError } = await supabase
@@ -114,6 +134,7 @@ export async function POST(request: Request) {
       currency: capture.currency ?? "USD",
       paymentReference: body.orderID,
       quantity: tickets.length,
+      promoCode: promo?.code ?? null,
     },
     attendees: tickets.map((ticket, index) => ({
       name: ticket.name!.trim(),

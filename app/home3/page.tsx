@@ -32,7 +32,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Home (Content Rework) | APAC Coaching Conference 2027",
   description:
-    "Content and storytelling rework for APAC Coaching Conference 2027 — Hero unchanged, everything after it rebuilt.",
+    "Content and storytelling rework for APAC Coaching Conference 2027. Hero unchanged, everything after it rebuilt.",
 };
 
 const whyAttend = [
@@ -43,7 +43,7 @@ const whyAttend = [
   },
   {
     n: "02",
-    title: "Built for practice, not just inspiration",
+    title: "Hands-on from the first morning",
     body: event.highlights[1],
   },
   {
@@ -61,7 +61,7 @@ const whyAttend = [
 const audiences = [
   {
     title: "Coaches & Practitioners",
-    body: "Sharpen your craft alongside peers working with real clients across the region, not just theory.",
+    body: "Sharpen your craft alongside peers working with real clients across the region.",
   },
   {
     title: "People & Culture Leaders",
@@ -69,7 +69,7 @@ const audiences = [
   },
   {
     title: "Organizational Leaders",
-    body: "Explore what it means to lead — and change systems — in a way that coaching itself models.",
+    body: "Explore what it means to lead, and to change systems, in a way that coaching itself models.",
   },
   {
     title: "Emerging & Aspiring Coaches",
@@ -80,9 +80,9 @@ const audiences = [
 const experience = [
   { icon: BadgeIcon, title: "Keynotes", body: "Big-room sessions on where coaching, leadership, and society are heading." },
   { icon: UsersIcon, title: "Workshops", body: "Hands-on breakout tracks you can apply the same week you get home." },
-  { icon: NetworkIcon, title: "Conversations", body: "Panels and discussions built for debate, not just delivery." },
+  { icon: NetworkIcon, title: "Conversations", body: "Panels and discussions built for debate." },
   { icon: CalendarIcon, title: "Networking", body: "Structured and unstructured time to actually meet the room." },
-  { icon: FrangipaniIcon, title: "Reflection", body: "Space to process, not just consume — in keeping with what coaching asks of us." },
+  { icon: FrangipaniIcon, title: "Reflection", body: "Space to process what you heard, in keeping with what coaching asks of us." },
 ];
 
 const takeHome = [
@@ -98,7 +98,10 @@ export default function Home3Page() {
   const heroTitleLead = nameParts.join(" ");
 
   return (
-    <div className={`${styles.page} ${cormorant.variable} ${manrope.variable} flex flex-col`}>
+    <div
+      data-theme="home3"
+      className={`${styles.page} ${cormorant.variable} ${manrope.variable} flex flex-col`}
+    >
       {/* ============ HERO — unchanged, per the brief's hard constraint ============ */}
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
         <div className="absolute inset-0 z-0">
@@ -119,17 +122,17 @@ export default function Home3Page() {
             className="pointer-events-none absolute bottom-0 left-0 h-auto w-56 opacity-30 sm:w-72 md:w-96 lg:w-[26rem]"
           />
         </div>
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:py-32">
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:pt-16 sm:pb-24">
           <div className="flex flex-col items-start gap-2">
-            <Image src="/images/logo_apac.webp" alt="" width={140} height={79} className="h-24 w-auto sm:h-40" />
+            <Image src="/images/logo_apac.webp" alt="" width={140} height={79} className="h-24 w-auto sm:h-28" />
             <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
           </div>
 
-          <h1 className="max-w-4xl text-6xl font-extrabold uppercase leading-[0.9] tracking-tight sm:text-9xl">
+          <h1 className="max-w-4xl text-6xl font-extrabold uppercase leading-[1.04] tracking-tight sm:text-9xl">
             <span className="block">{heroTitleLead}</span>
             <span
               className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #f2c14e, #c75b39)" }}
+              style={{ backgroundImage: "linear-gradient(90deg, var(--gold-bright), var(--accent))" }}
             >
               {heroTitleHighlight}
             </span>
@@ -173,15 +176,14 @@ export default function Home3Page() {
       <section className={styles.onCharcoal}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-4xl px-6 py-28 text-center">
-            <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>Why Now</span>
-            <p className={`${styles.serif} mt-6 text-3xl leading-snug sm:text-4xl md:text-5xl`}>
+            <p className={`${styles.serif} text-3xl leading-snug sm:text-4xl md:text-5xl`}>
               The world is changing faster than our systems can keep up. AI is reshaping work,
               complexity is reshaping leadership, and old models of change are reaching their
               limits.
             </p>
             <p className={`mt-8 text-lg leading-8 ${styles.mutedOnDark}`}>
-              Coaching sits at the center of that shift — not just helping individuals grow, but
-              helping organizations and societies navigate what&apos;s next. {event.tagline} brings
+              Coaching sits at the center of that shift: helping individuals grow, and helping
+              organizations and societies navigate what&apos;s next. {event.tagline} brings
               together the people asking the harder questions about people, about systems, and
               about the kind of society coaching should help build.
             </p>
@@ -194,8 +196,7 @@ export default function Home3Page() {
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="max-w-2xl">
-              <span className={styles.eyebrow}>What We Believe</span>
-              <h2 className={`${styles.serif} mt-4 text-4xl sm:text-5xl`}>Three Conference Pillars</h2>
+              <h2 className={`${styles.serif} text-4xl sm:text-5xl`}>Three Conference Pillars</h2>
               <p className={`mt-4 text-base leading-7 ${styles.muted}`}>{event.description}</p>
             </div>
             <div className="mt-14 grid grid-cols-1 gap-10 sm:grid-cols-3">
@@ -218,8 +219,7 @@ export default function Home3Page() {
       <section className={styles.onForest}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>Why Attend</span>
-            <h2 className={`${styles.serif} mt-4 max-w-xl text-4xl sm:text-5xl`}>
+            <h2 className={`${styles.serif} max-w-xl text-4xl sm:text-5xl`}>
               What two days here actually gets you
             </h2>
             <div className="mt-14 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2">
@@ -258,9 +258,8 @@ export default function Home3Page() {
       <section className={styles.onSand}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={styles.eyebrow}>Who Is This For</span>
-            <h2 className={`${styles.serif} mt-4 max-w-xl text-4xl sm:text-5xl`}>
-              Built for the whole coaching ecosystem
+            <h2 className={`${styles.serif} max-w-xl text-4xl sm:text-5xl`}>
+              Who is this for
             </h2>
             <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {audiences.map((a) => (
@@ -280,29 +279,28 @@ export default function Home3Page() {
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
               <div>
-                <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>The Community Behind It</span>
-                <h2 className={`${styles.serif} mt-4 text-4xl sm:text-5xl`}>
+                <h2 className={`${styles.serif} text-4xl sm:text-5xl`}>
                   Presented by {event.organizer}
                 </h2>
                 <p className={`mt-6 text-base leading-7 ${styles.mutedOnDark}`}>
                   {event.organizer} exists to connect coaches, leaders, and practitioners across
-                  the region — sharing practice, setting standards, and building a community that
+                  the region: sharing practice, setting standards, and building a community that
                   extends well beyond any single event. {event.tagline} is hosted in partnership
                   with Loop Institute of Coaching, the official local partner in Bali, Indonesia.
                 </p>
                 <p className={`mt-4 text-base leading-7 ${styles.mutedOnDark}`}>
-                  This conference is one place that community comes together in person — coaches,
+                  This conference is one place that community comes together in person: coaches,
                   leaders, and practitioners from across Asia Pacific, in the same room, for two
                   days.
                 </p>
               </div>
               <div className="flex flex-col gap-6 rounded-2xl border border-white/10 p-8">
                 <div className="flex flex-col items-start gap-2">
-                  <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>Presented By</span>
+                  <span className={`${styles.label} ${styles.mutedOnDark}`}>Presented by</span>
                   <Image src="/images/logo_apac.webp" alt="Asia Pacific Alliance of Coaches" width={160} height={90} className="h-14 w-auto" />
                 </div>
                 <div className="flex flex-col items-start gap-2">
-                  <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>Official Local Partner</span>
+                  <span className={`${styles.label} ${styles.mutedOnDark}`}>Official local partner</span>
                   <Image src="/images/Logo-loop.webp" alt="Loop Institute of Coaching" width={160} height={55} className="h-9 w-auto" />
                 </div>
               </div>
@@ -315,25 +313,23 @@ export default function Home3Page() {
       <section className={styles.onSand}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={`${styles.eyebrow}`} style={{ color: "var(--forest)" }}>
-              <FrangipaniIcon className="h-4 w-4" /> Bali, Indonesia
-            </span>
-            <h2 className={`${styles.serif} mt-4 max-w-2xl text-4xl sm:text-5xl`}>
-              More than a destination
+            <h2 className={`${styles.serif} flex max-w-2xl items-center gap-3 text-4xl sm:text-5xl`}>
+              <FrangipaniIcon className="h-8 w-8 shrink-0 text-(--forest)" />
+              Bali, Indonesia
             </h2>
             <p className={`mt-6 max-w-2xl text-lg leading-8 ${styles.muted}`}>
-              Bali has long been a meeting point — of cultures, of ideas, of people seeking
+              Bali has long been a meeting point of cultures, of ideas, of people seeking
               something more intentional. It&apos;s a fitting home for a conference about
               what&apos;s next: a place where nature, community, and contemporary Asia Pacific
               life sit side by side. Beyond the sessions, expect space to reflect, connect, and be
-              present — the same qualities coaching itself asks of us.
+              present, the same qualities coaching itself asks of us.
             </p>
             <Link
               href="/venue"
               className="mt-6 inline-block w-fit text-sm font-semibold hover:underline"
               style={{ color: "var(--forest)" }}
             >
-              Venue &amp; Bali Guide &rarr;
+              Read the Venue &amp; Bali guide
             </Link>
           </div>
         </RevealOnScroll>
@@ -343,8 +339,7 @@ export default function Home3Page() {
       <section className={styles.onIvory}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={styles.eyebrow}>The Experience</span>
-            <h2 className={`${styles.serif} mt-4 max-w-xl text-4xl sm:text-5xl`}>
+            <h2 className={`${styles.serif} max-w-xl text-4xl sm:text-5xl`}>
               Two days, one Asia Pacific community
             </h2>
             <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
@@ -364,13 +359,12 @@ export default function Home3Page() {
       <section className={styles.onCharcoal}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-4xl px-6 py-24 text-center">
-            <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>Featured Speakers</span>
-            <h2 className={`${styles.serif} mt-4 text-4xl sm:text-5xl`}>
-              A lineup worth waiting for
+            <h2 className={`${styles.serif} text-4xl sm:text-5xl`}>
+              Featured speakers
             </h2>
             <p className={`mx-auto mt-6 max-w-xl text-base leading-7 ${styles.mutedOnDark}`}>
-              We&apos;re confirming an outstanding keynote lineup — voices from coaching,
-              leadership, organizational transformation, and society — for {event.tagline}. Check
+              We&apos;re confirming an outstanding keynote lineup for {event.tagline}, with voices
+              from coaching, leadership, organizational transformation, and society. Check
               back soon, or get in touch to be notified as speakers are announced.
             </p>
             <a
@@ -390,8 +384,7 @@ export default function Home3Page() {
       <section className={styles.onIvory}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={styles.eyebrow}>Program</span>
-            <h2 className={`${styles.serif} mt-4 max-w-xl text-4xl sm:text-5xl`}>
+            <h2 className={`${styles.serif} max-w-xl text-4xl sm:text-5xl`}>
               Two days, start to finish
             </h2>
             <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-2">
@@ -427,7 +420,7 @@ export default function Home3Page() {
               className="mt-10 inline-block w-fit text-sm font-semibold hover:underline"
               style={{ color: "var(--forest)" }}
             >
-              View Full Agenda &rarr;
+              View the full agenda
             </Link>
           </div>
         </RevealOnScroll>
@@ -437,9 +430,8 @@ export default function Home3Page() {
       <section className={styles.onForest}>
         <RevealOnScroll>
           <div className="mx-auto w-full max-w-6xl px-6 py-24">
-            <span className={`${styles.eyebrow} ${styles.mutedOnDark}`}>What You Leave With</span>
-            <h2 className={`${styles.serif} mt-4 max-w-xl text-4xl sm:text-5xl`}>
-              Beyond the badge
+            <h2 className={`${styles.serif} max-w-xl text-4xl sm:text-5xl`}>
+              What you leave with
             </h2>
             <ul className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {takeHome.map((item) => (
@@ -493,7 +485,7 @@ export default function Home3Page() {
         <div className="mx-auto w-full max-w-6xl px-6 py-16">
           <div className="flex flex-col items-center gap-6 border-t border-white/10 pt-12 sm:flex-row sm:justify-center sm:gap-16">
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-semibold uppercase tracking-wide ${styles.mutedOnDark}`}>
+              <span className={`${styles.label} ${styles.mutedOnDark}`}>
                 Presented by
               </span>
               <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer">
@@ -508,8 +500,8 @@ export default function Home3Page() {
             </div>
             <div className="hidden h-8 w-px bg-white/10 sm:block" />
             <div className="flex items-center gap-3">
-              <span className={`text-xs font-semibold uppercase tracking-wide ${styles.mutedOnDark}`}>
-                Official Local Partner
+              <span className={`${styles.label} ${styles.mutedOnDark}`}>
+                Official local partner
               </span>
               <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer">
                 <Image

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
+import { redeemPromoCode } from "@/lib/promo";
 
 type XenditInvoiceWebhookBody = {
   id: string;
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
     .update({ payment_status: "paid" })
     .eq("payment_reference", body.id)
     .eq("payment_status", "pending")
-    .select("id, amount, currency, quantity")
+    .select("id, amount, currency, quantity, promo_code")
     .single();
 
   if (updateError || !order) {
@@ -88,6 +89,10 @@ export async function POST(request: Request) {
     // or the pending order is missing entirely (create-invoice's insert failed).
     console.error("No pending Xendit order to update for", body.id, updateError);
     return Response.json({ ok: true, alreadyProcessedOrMissing: true });
+  }
+
+  if (order.promo_code) {
+    await redeemPromoCode(order.promo_code);
   }
 
   const { data: tickets, error: ticketsError } = await supabase
@@ -117,6 +122,7 @@ export async function POST(request: Request) {
       currency: order.currency,
       paymentReference: body.id,
       quantity: order.quantity,
+      promoCode: order.promo_code,
     },
     attendees: tickets.map((ticket) => ({
       name: ticket.full_name,

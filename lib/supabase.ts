@@ -23,6 +23,21 @@ export type Order = {
   payment_provider: "paypal" | "xendit";
   payment_status: "pending" | "paid" | "refunded";
   payment_reference: string;
+  promo_code: string | null;
+  discount_amount: string;
+  created_at: string;
+};
+
+export type PromoCode = {
+  id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: string;
+  max_uses: number | null;
+  used_count: number;
+  valid_until: string | null;
+  active: boolean;
+  note: string | null;
   created_at: string;
 };
 

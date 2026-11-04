@@ -44,11 +44,11 @@ export default function Home() {
             <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
           </div>
 
-          <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
+          <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[1.04] tracking-tight sm:text-6xl">
             {heroTitleLead && <span className="block">{heroTitleLead}</span>}
             <span
               className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #f2c14e, #c75b39)" }}
+              style={{ backgroundImage: "linear-gradient(90deg, var(--gold-bright), var(--accent))" }}
             >
               {heroTitleHighlight}
             </span>
@@ -97,7 +97,7 @@ export default function Home() {
       <section className="mx-auto w-full max-w-6xl px-6 pt-12">
         <div className="flex flex-col items-center gap-6 border-b border-black/[.08] pb-12 dark:border-white/[.145] sm:flex-row sm:justify-center sm:gap-16">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
+            <span className="text-sm font-medium text-foreground/70">
               Presented by
             </span>
             <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer">
@@ -112,8 +112,8 @@ export default function Home() {
           </div>
           <div className="hidden h-8 w-px bg-black/[.08] dark:bg-white/[.145] sm:block" />
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-foreground/50">
-              Official Local Partner
+            <span className="text-sm font-medium text-foreground/70">
+              Official local partner
             </span>
             <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer">
               <Image
@@ -131,7 +131,6 @@ export default function Home() {
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-16">
           <SectionHeading
-            eyebrow="About the Summit"
             title="Two days, one growing coaching community"
             description={event.description}
           />
@@ -139,7 +138,7 @@ export default function Home() {
             {event.highlights.map((highlight) => (
               <li
                 key={highlight}
-                className="flex items-start gap-3 rounded-2xl border border-black/[.08] bg-background p-4 text-sm text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
+                className="flex items-start gap-3 rounded-2xl border border-black/[.08] bg-surface-card p-4 text-sm text-foreground/80 dark:border-white/[.145]"
               >
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden />
                 {highlight}
@@ -153,24 +152,20 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Link
             href="/agenda"
-            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-surface-card p-6 transition-colors hover:border-accent dark:border-white/[.145]"
           >
-            <span className="text-sm font-semibold uppercase tracking-wide text-accent">
-              Agenda
-            </span>
-            <span className="text-lg font-semibold text-foreground">
-              See the full Day 1 &amp; Day 2 schedule &rarr;
+            <span className="text-lg font-semibold text-accent-text">Agenda</span>
+            <span className="text-base text-foreground/80">
+              See the full Day 1 &amp; Day 2 schedule
             </span>
           </Link>
           <Link
             href="/venue"
-            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-surface-card p-6 transition-colors hover:border-accent dark:border-white/[.145]"
           >
-            <span className="text-sm font-semibold uppercase tracking-wide text-accent">
-              Venue &amp; Bali Guide
-            </span>
-            <span className="text-lg font-semibold text-foreground">
-              Venue, hotels, and things to do &rarr;
+            <span className="text-lg font-semibold text-accent-text">Venue &amp; Bali guide</span>
+            <span className="text-base text-foreground/80">
+              Venue, hotels, and things to do
             </span>
           </Link>
         </div>
@@ -179,13 +174,12 @@ export default function Home() {
       <section className="bg-surface-muted">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-20">
           <SectionHeading
-            eyebrow="Featured Speakers"
-            title="Keynote Speakers"
-            description="Visionary voices from coaching, leadership, organizational transformation, and society — to be announced."
+            title="Keynote speakers"
+            description="Visionary voices from coaching, leadership, organizational transformation, and society, to be announced."
           />
-          <div className="rounded-3xl border border-dashed border-black/[.15] bg-background px-8 py-14 text-center dark:border-white/[.2] dark:bg-[#241c15]">
-            <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-              Coming Soon
+          <div className="rounded-3xl border border-dashed border-black/[.15] bg-surface-card px-8 py-14 text-center dark:border-white/[.2]">
+            <p className="text-base font-semibold text-accent-text">
+              Coming soon
             </p>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/70">
               We&apos;re confirming an outstanding keynote lineup for APAC Coaching Conference
@@ -198,11 +192,10 @@ export default function Home() {
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="flex flex-col gap-10">
           <SectionHeading
-            eyebrow="Partners & Sponsors"
             title="Partnership opportunities are now open"
             description="Join organizations investing in the future of coaching across Asia Pacific."
           />
-          <div className="flex flex-col items-start gap-4 rounded-3xl border border-black/[.08] bg-background p-8 dark:border-white/[.145] dark:bg-[#241c15] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-4 rounded-3xl border border-black/[.08] bg-surface-card p-8 dark:border-white/[.145] sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-xl text-sm leading-6 text-foreground/70">
               Get in touch with the team to learn about sponsorship and partnership packages for
               APAC Coaching Conference 2027.

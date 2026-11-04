@@ -40,7 +40,14 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-export async function createOrder(amount: string, currency: string): Promise<string> {
+// customId rides along on the PayPal order and comes back in the capture
+// response — used to carry the promo code from create to capture without
+// trusting the browser to resend it.
+export async function createOrder(
+  amount: string,
+  currency: string,
+  customId?: string
+): Promise<string> {
   const accessToken = await getAccessToken();
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: "POST",
@@ -56,6 +63,7 @@ export async function createOrder(amount: string, currency: string): Promise<str
             currency_code: currency,
             value: amount,
           },
+          ...(customId ? { custom_id: customId } : {}),
         },
       ],
     }),
@@ -73,13 +81,17 @@ export type CaptureResult = {
   status: string;
   amount: string | null;
   currency: string | null;
+  customId: string | null;
 };
 
 type PayPalCaptureResponse = {
   status: string;
   purchase_units?: {
     payments?: {
-      captures?: { amount?: { value?: string; currency_code?: string } }[];
+      captures?: {
+        amount?: { value?: string; currency_code?: string };
+        custom_id?: string;
+      }[];
     };
   }[];
 };
@@ -102,10 +114,11 @@ export async function captureOrder(orderId: string): Promise<CaptureResult> {
   }
 
   const data = (await response.json()) as PayPalCaptureResponse;
-  const capturedAmount = data.purchase_units?.[0]?.payments?.captures?.[0]?.amount;
+  const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
   return {
     status: data.status,
-    amount: capturedAmount?.value ?? null,
-    currency: capturedAmount?.currency_code ?? null,
+    amount: capture?.amount?.value ?? null,
+    currency: capture?.amount?.currency_code ?? null,
+    customId: capture?.custom_id ?? null,
   };
 }

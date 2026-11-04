@@ -3,11 +3,14 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
 import { getPricingTier, tierPriceFor, USD_TO_IDR_RATE } from "@/app/data/pricing";
+import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
+import { validatePromoCode } from "@/lib/promo";
 import { event } from "@/app/data/event";
 
 type CreateInvoiceRequestBody = {
   method?: string;
   tickets?: RegistrationFields[];
+  promoCode?: string;
 };
 
 // Best-effort mapping to Xendit's invoice `payment_methods` filter codes, so
@@ -49,7 +52,18 @@ export async function POST(request: Request) {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
   }, 0);
-  const basePriceIDR = Math.round(basePriceUSD * USD_TO_IDR_RATE);
+
+  let promo: AppliedPromo | null = null;
+  if (body.promoCode?.trim()) {
+    const promoResult = await validatePromoCode(body.promoCode);
+    if ("error" in promoResult) {
+      return Response.json({ error: promoResult.error }, { status: 400 });
+    }
+    promo = promoResult.promo;
+  }
+  const discountUSD = promoDiscountUSD(promo, basePriceUSD);
+  const discountIDR = Math.round(discountUSD * USD_TO_IDR_RATE);
+  const basePriceIDR = Math.round((basePriceUSD - discountUSD) * USD_TO_IDR_RATE);
   const total = calculateTotal(method, basePriceIDR);
 
   let invoice;
@@ -84,6 +98,8 @@ export async function POST(request: Request) {
       payment_provider: "xendit",
       payment_status: "pending",
       payment_reference: invoice.id,
+      promo_code: promo?.code ?? null,
+      discount_amount: discountIDR,
     })
     .select("id")
     .single();

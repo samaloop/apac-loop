@@ -1,10 +1,16 @@
 import { createOrder } from "@/lib/paypal";
 import { getPaymentMethod, calculateTotal } from "@/app/data/fees";
 import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
+import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
+import { validatePromoCode } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { method?: string; tickets?: RegistrationFields[] };
+  const body = (await request.json()) as {
+    method?: string;
+    tickets?: RegistrationFields[];
+    promoCode?: string;
+  };
 
   const ticketsError = validateTickets(body.tickets);
   if (ticketsError) {
@@ -24,10 +30,20 @@ export async function POST(request: Request) {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
   }, 0);
-  const total = calculateTotal(method, basePrice).toFixed(2);
+
+  let promo: AppliedPromo | null = null;
+  if (body.promoCode?.trim()) {
+    const promoResult = await validatePromoCode(body.promoCode);
+    if ("error" in promoResult) {
+      return Response.json({ error: promoResult.error }, { status: 400 });
+    }
+    promo = promoResult.promo;
+  }
+  const discountedBase = basePrice - promoDiscountUSD(promo, basePrice);
+  const total = calculateTotal(method, discountedBase).toFixed(2);
 
   try {
-    const orderId = await createOrder(total, "USD");
+    const orderId = await createOrder(total, "USD", promo?.code);
     return Response.json({ id: orderId });
   } catch (error) {
     console.error("Failed to create PayPal order", error);

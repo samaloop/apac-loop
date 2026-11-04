@@ -1,0 +1,22 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "polish",
+  "scope": "page",
+  "entry": "/home3",
+  "prompt": "APAC Coaching Conference 2027 alternate homepage: attendees register for a two-day coaching conference in Bali",
+  "waived": [],
+  "date": "2026-11-04"
+ },
+ {
+  "mode": "redesign",
+  "depth": "polish",
+  "scope": "page",
+  "entry": "/",
+  "prompt": "APAC Coaching Conference 2027 homepage: attendees register for a two-day coaching conference in Bali",
+  "waived": [
+   "38iii"
+  ],
+  "date": "2026-11-04"
+ }
+]
