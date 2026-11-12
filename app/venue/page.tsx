@@ -4,8 +4,8 @@ import SectionHeading from "../components/SectionHeading";
 import InfoCard from "../components/InfoCard";
 
 export const metadata: Metadata = {
-  title: "Venue | Loop Coaching Summit 2026",
-  description: "Venue, hotels, and Bali guide for Loop Coaching Summit 2026.",
+  title: "Venue | APAC Coaching Conference 2027",
+  description: "Venue, hotels, and Bali guide for APAC Coaching Conference 2027.",
 };
 
 export default function VenuePage() {

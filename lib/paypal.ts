@@ -1,10 +1,22 @@
-const PAYPAL_API_BASE = process.env.PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com";
+// Single switch between the demo (sandbox) and live credential sets below.
+// NEXT_PUBLIC_ because the client component needs to read the same flag to
+// pick which client id to hand the PayPal SDK — an environment name isn't
+// sensitive, so it's fine to expose.
+const IS_LIVE = process.env.NEXT_PUBLIC_PAYPAL_ENV === "live";
+
+const PAYPAL_API_BASE = IS_LIVE
+  ? process.env.LIVE_PAYPAL_API_BASE ?? "https://api-m.paypal.com"
+  : process.env.DEMO_PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com";
 
 function getCredentials() {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const clientId = IS_LIVE
+    ? process.env.NEXT_PUBLIC_LIVE_PAYPAL_CLIENT_ID
+    : process.env.NEXT_PUBLIC_DEMO_PAYPAL_CLIENT_ID;
+  const clientSecret = IS_LIVE
+    ? process.env.LIVE_PAYPAL_CLIENT_SECRET
+    : process.env.DEMO_PAYPAL_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    throw new Error("Missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET");
+    throw new Error(`Missing PayPal ${IS_LIVE ? "live" : "demo"} credentials`);
   }
   return { clientId, clientSecret };
 }
@@ -28,7 +40,14 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-export async function createOrder(amount: string, currency: string): Promise<string> {
+// customId rides along on the PayPal order and comes back in the capture
+// response — used to carry the promo code from create to capture without
+// trusting the browser to resend it.
+export async function createOrder(
+  amount: string,
+  currency: string,
+  customId?: string
+): Promise<string> {
   const accessToken = await getAccessToken();
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: "POST",
@@ -44,6 +63,7 @@ export async function createOrder(amount: string, currency: string): Promise<str
             currency_code: currency,
             value: amount,
           },
+          ...(customId ? { custom_id: customId } : {}),
         },
       ],
     }),
@@ -59,6 +79,21 @@ export async function createOrder(amount: string, currency: string): Promise<str
 
 export type CaptureResult = {
   status: string;
+  amount: string | null;
+  currency: string | null;
+  customId: string | null;
+};
+
+type PayPalCaptureResponse = {
+  status: string;
+  purchase_units?: {
+    payments?: {
+      captures?: {
+        amount?: { value?: string; currency_code?: string };
+        custom_id?: string;
+      }[];
+    };
+  }[];
 };
 
 export async function captureOrder(orderId: string): Promise<CaptureResult> {
@@ -78,6 +113,12 @@ export async function captureOrder(orderId: string): Promise<CaptureResult> {
     throw new Error(`PayPal capture order failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { status: string };
-  return { status: data.status };
+  const data = (await response.json()) as PayPalCaptureResponse;
+  const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
+  return {
+    status: data.status,
+    amount: capture?.amount?.value ?? null,
+    currency: capture?.amount?.currency_code ?? null,
+    customId: capture?.custom_id ?? null,
+  };
 }

@@ -1,16 +1,31 @@
+/* Hallmark · checked: 2026-11-04 · genre: editorial (inferred)
+ * floor: 0 FAIL · fixed: 13 (19, 26a, 26b, 34, 40, 48, 50, 54, 55a, 63, 67, F3, F16) · structural: 5 printed (8, 58, 59, 77, 78)
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · waive 38iii · one gradient word, once, in the hero h1 · the gold FRONTIER word copies the event poster lockup of The Next Frontier */
 @import "tailwindcss";
 
 :root {
   --background: #fbf6ee;
   --foreground: #2a211a;
-  --primary: #1f4d46;
+  --primary: #01112b;
   --primary-foreground: #fbf6ee;
-  --accent: #c75b39;
+  /* Deepened from #c75b39 (3.9:1 on cream) to pass 4.5:1 for button and
+     link text on the paper, and 3:1 as a focus ring on the navy bands. */
+  --accent: #b04e2f;
   --accent-foreground: #fbf6ee;
+  /* Terracotta as text: the fill colour on cream, a lighter step wherever
+     the ground is dark (the navy nav always, every surface in dark mode). */
+  --accent-bright: #e8875f;
+  --accent-text: var(--accent);
+  --focus: var(--accent);
   --gold: #d9a441;
+  --gold-bright: #f2c14e;
   --gold-foreground: #2a211a;
   --leaf: #4c7a5e;
   --surface-muted: #f1e7d3;
+  /* Card/panel fill: the page paper in light mode, a raised brown in dark. */
+  --surface-card: var(--background);
+  --font-body: Arial, Helvetica, sans-serif;
 }
 
 @theme inline {
@@ -20,12 +35,32 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-text: var(--accent-text);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-leaf: var(--leaf);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-card: var(--surface-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* /home3's editorial palette (everything after the hero), scoped to the
+   page wrapper so the rest of the site keeps navy/gold. */
+[data-theme="home3"] {
+  --charcoal: #211f1c;
+  --charcoal-2: #2a2723;
+  --ivory: #f7f2e7;
+  --ink: #262320;
+  --ink-muted: #6b6355;
+  --forest: #33443a;
+  --forest-2: #3d5245;
+  --sand: #ece1c7;
+  --on-dark: #f3ede0;
+  --on-dark-muted: rgb(243 237 224 / 0.68);
+  --font-home3-body: var(--font-manrope), system-ui, sans-serif;
+  --font-home3-serif: var(--font-serif), Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,11 +68,50 @@
     --background: #1c1712;
     --foreground: #f3e9d8;
     --surface-muted: #241c15;
+    --surface-card: #241c15;
+    --accent-text: var(--accent-bright);
   }
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  scrollbar-color: var(--accent) var(--surface-muted);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  caret-color: var(--accent);
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+h1,
+h2 {
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+/* Terracotta clears 3:1 on both the cream paper and the navy bands; on a
+   terracotta band the ring switches to navy. Instant: no transition. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+:where(section.bg-accent) {
+  --focus: var(--primary);
+}
+
+:where(a, button):active {
+  transform: translateY(1px);
 }

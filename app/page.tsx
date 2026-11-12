@@ -1,33 +1,82 @@
+import Image from "next/image";
 import Link from "next/link";
 import { event } from "./data/event";
-import { speakers } from "./data/speakers";
-import { sponsorTiers } from "./data/sponsors";
 import SectionHeading from "./components/SectionHeading";
-import SpeakerCard from "./components/SpeakerCard";
-import { PalmFrond, WaveDivider } from "./components/motifs";
+import { WaveDivider } from "./components/motifs";
 
 export default function Home() {
-  const featuredSpeakers = speakers.slice(0, 3);
-  const platinumSponsors = sponsorTiers[0]?.sponsors ?? [];
+  // Split the event name so the last word gets the gold-gradient treatment,
+  // matching the poster's "THE NEXT" (plain) / "FRONTIER" (gold) layout.
+  const nameParts = event.name.split(" ");
+  const heroTitleHighlight = nameParts.pop() ?? event.name;
+  const heroTitleLead = nameParts.join(" ");
 
   return (
     <div className="flex flex-col">
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <PalmFrond className="pointer-events-none absolute -right-8 -top-8 h-64 w-64 text-primary-foreground/10 sm:h-96 sm:w-96" />
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:py-32">
-          <span className="w-fit rounded-full bg-accent px-4 py-1 text-sm font-semibold text-accent-foreground">
-            {event.date} &middot; {event.location}
-          </span>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            {event.name}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/header_background_1.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[30%_center] sm:object-center"
+          />
+          <Image
+            src="/images/hero-dancer.webp"
+            alt=""
+            width={384}
+            height={352}
+            priority
+            className="pointer-events-none absolute bottom-0 left-0 h-auto w-32 sm:w-40 md:w-56 lg:w-72"
+          />
+        </div>
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-24 pb-52 sm:py-32">
+          <div className="flex flex-col items-start gap-2">
+            <Image
+              src="/images/logo_apac.webp"
+              alt=""
+              width={140}
+              height={79}
+              className="h-12 w-auto sm:h-26"
+            />
+            <span className="text-sm font-bold sm:text-base">{event.tagline}</span>
+          </div>
+
+          <h1 className="max-w-3xl text-4xl font-extrabold uppercase leading-[1.04] tracking-tight sm:text-6xl">
+            {heroTitleLead && <span className="block">{heroTitleLead}</span>}
+            <span
+              className="block bg-clip-text text-transparent"
+              style={{ backgroundImage: "linear-gradient(90deg, var(--gold-bright), var(--accent))" }}
+            >
+              {heroTitleHighlight}
+            </span>
           </h1>
-          <p className="max-w-2xl text-xl text-primary-foreground/80">
-            {event.tagline}
-          </p>
+
           <p className="max-w-2xl text-base leading-7 text-primary-foreground/70">
             {event.description}
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
+
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-primary-foreground/90">
+            <span className="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-gold" aria-hidden>
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" />
+              </svg>
+              {event.date}
+            </span>
+            <span className="h-4 w-px bg-primary-foreground/30" aria-hidden />
+            <span className="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-gold" aria-hidden>
+                <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              {event.location}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-4 pt-2 sm:flex-row">
             <Link
               href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
@@ -42,21 +91,54 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <WaveDivider className="block h-10 w-full sm:h-16" color="var(--background)" />
+        <WaveDivider className="relative z-10 block h-10 w-full sm:h-16" color="var(--background)" />
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-6 pt-12">
+        <div className="flex flex-col items-center gap-6 border-b border-black/[.08] pb-12 dark:border-white/[.145] sm:flex-row sm:justify-center sm:gap-16">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground/70">
+              Presented by
+            </span>
+            <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/images/logo_apac.webp"
+                alt="Asia Pacific Alliance of Coaches"
+                width={192}
+                height={108}
+                className="h-18 w-auto"
+              />
+            </a>
+          </div>
+          <div className="hidden h-8 w-px bg-black/[.08] dark:bg-white/[.145] sm:block" />
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground/70">
+              Official local partner
+            </span>
+            <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/images/Logo-loop.webp"
+                alt="Loop Institute of Coaching"
+                width={200}
+                height={68}
+                className="h-9 w-auto"
+              />
+            </a>
+          </div>
+        </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="grid gap-10 sm:grid-cols-2 sm:gap-16">
           <SectionHeading
-            eyebrow="About the Summit"
-            title="Lorem Ipssum dolor sit amet"
+            title="Two days, one growing coaching community"
             description={event.description}
           />
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {event.highlights.map((highlight) => (
               <li
                 key={highlight}
-                className="flex items-start gap-3 rounded-2xl border border-black/[.08] bg-background p-4 text-sm text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
+                className="flex items-start gap-3 rounded-2xl border border-black/[.08] bg-surface-card p-4 text-sm text-foreground/80 dark:border-white/[.145]"
               >
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" aria-hidden />
                 {highlight}
@@ -70,24 +152,20 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Link
             href="/agenda"
-            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-surface-card p-6 transition-colors hover:border-accent dark:border-white/[.145]"
           >
-            <span className="text-sm font-semibold uppercase tracking-wide text-accent">
-              Agenda
-            </span>
-            <span className="text-lg font-semibold text-foreground">
-              See the full Day 1 &amp; Day 2 schedule &rarr;
+            <span className="text-lg font-semibold text-accent-text">Agenda</span>
+            <span className="text-base text-foreground/80">
+              See the full Day 1 &amp; Day 2 schedule
             </span>
           </Link>
           <Link
             href="/venue"
-            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-background p-6 transition-colors hover:border-accent dark:border-white/[.145] dark:bg-[#241c15]"
+            className="flex flex-col gap-2 rounded-3xl border border-black/[.08] bg-surface-card p-6 transition-colors hover:border-accent dark:border-white/[.145]"
           >
-            <span className="text-sm font-semibold uppercase tracking-wide text-accent">
-              Venue &amp; Bali Guide
-            </span>
-            <span className="text-lg font-semibold text-foreground">
-              Venue, hotels, and things to do &rarr;
+            <span className="text-lg font-semibold text-accent-text">Venue &amp; Bali guide</span>
+            <span className="text-base text-foreground/80">
+              Venue, hotels, and things to do
             </span>
           </Link>
         </div>
@@ -96,45 +174,41 @@ export default function Home() {
       <section className="bg-surface-muted">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-20">
           <SectionHeading
-            eyebrow="Featured Speakers"
-            title="lorem ipsum dolor sit amet"
+            title="Keynote speakers"
+            description="Visionary voices from coaching, leadership, organizational transformation, and society, to be announced."
           />
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredSpeakers.map((speaker) => (
-              <SpeakerCard key={speaker.id} speaker={speaker} />
-            ))}
+          <div className="rounded-3xl border border-dashed border-black/[.15] bg-surface-card px-8 py-14 text-center dark:border-white/[.2]">
+            <p className="text-base font-semibold text-accent-text">
+              Coming soon
+            </p>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/70">
+              We&apos;re confirming an outstanding keynote lineup for APAC Coaching Conference
+              2027. Check back soon.
+            </p>
           </div>
-          <Link
-            href="/speakers"
-            className="w-fit text-sm font-semibold text-accent hover:underline"
-          >
-            View all speakers &rarr;
-          </Link>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-6 py-20">
         <div className="flex flex-col gap-10">
           <SectionHeading
-            eyebrow="Our Sponsors"
-            title="Lorem ipsum dolor sit amet"
+            title="Partnership opportunities are now open"
+            description="Join organizations investing in the future of coaching across Asia Pacific."
           />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {platinumSponsors.map((sponsor) => (
-              <div
-                key={sponsor.id}
-                className="flex h-24 items-center justify-center rounded-2xl border border-black/[.08] bg-background px-4 text-center text-sm font-medium text-foreground/80 dark:border-white/[.145] dark:bg-[#241c15]"
-              >
-                {sponsor.name}
-              </div>
-            ))}
+          <div className="flex flex-col items-start gap-4 rounded-3xl border border-black/[.08] bg-surface-card p-8 dark:border-white/[.145] sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-foreground/70">
+              Get in touch with the team to learn about sponsorship and partnership packages for
+              APAC Coaching Conference 2027.
+            </p>
+            <a
+              href={`https://wa.me/${event.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 shrink-0 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+            >
+              Become a Partner
+            </a>
           </div>
-          <Link
-            href="/sponsors"
-            className="w-fit text-sm font-semibold text-accent hover:underline"
-          >
-            View all sponsors &rarr;
-          </Link>
         </div>
       </section>
 

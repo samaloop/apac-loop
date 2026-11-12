@@ -1,0 +1,75 @@
+/* Hallmark · checked: 2026-11-04 · genre: editorial (inferred)
+ * floor: 0 FAIL · fixed: 11 (19, 26a, 26b, 44b, 48, 54, 55a, 62, 63, 67, F26) · structural: 3 printed (58, 59, 77)
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · reworded "Built for practice, not just inspiration" to "Hands-on from the first morning" · 19 names the rebuttal cadence */
+/* Hallmark · reworded "Built for the whole coaching ecosystem" to "Who is this for" · 19 names the filler opener, the eyebrow became the heading */
+/* Hallmark · reworded "More than a destination" to "Bali, Indonesia" · 54, the figurative head gave way to its eyebrow label */
+/* Hallmark · reworded "A lineup worth waiting for" to "Featured speakers" · 54, the figurative head gave way to its eyebrow label */
+/* Hallmark · reworded "Beyond the badge" to "What you leave with" · 54, the figurative head gave way to its eyebrow label */
+/* Hallmark · answered F19 · Manrope body at 400 and 600 plus the 500 and 700 the hero and section heads already used before this polish */
+.page {
+  /* Editorial palette for everything after the Hero — deliberately distinct
+     from the site's navy/gold so the Hero stays untouched while the rest of
+     the page shifts into a calmer, premium-conference register. The tokens
+     live in globals.css under [data-theme="home3"], set on this wrapper. */
+  font-family: var(--font-home3-body);
+}
+
+.serif {
+  font-family: var(--font-home3-serif);
+}
+
+.page h3 {
+  text-wrap: balance;
+}
+
+/* Same instant ring as globals.css, coloured per section via --focus. */
+.page :where(a, button):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page :where(a, button):active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Visible by default. RevealOnScroll arms the hidden state (data-js) only
+   for sections that start below the fold, so the page reads fine with
+   scripting off or before hydration. */
+.reveal {
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal[data-js] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.reveal[data-js].revealVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section background/foreground pairs — the visual "rhythm" the brief asks
+   for, applied as one class per section instead of repeated inline styles.
+   --focus picks a ring colour that clears 3:1 on each ground. */
+.onCharcoal { background: var(--charcoal); color: var(--on-dark); --focus: var(--sand); }
+.onCharcoal2 { background: var(--charcoal-2); color: var(--on-dark); --focus: var(--sand); }
+.onIvory { background: var(--ivory); color: var(--ink); --focus: var(--forest); }
+.onForest { background: var(--forest); color: var(--on-dark); --focus: var(--sand); }
+.onSand { background: var(--sand); color: var(--ink); --focus: var(--forest); }
+
+.muted { color: var(--ink-muted); }
+.mutedOnDark { color: var(--on-dark-muted); }
+/* Logo labels ("Presented by"): the body face a step smaller, sentence
+   case, untracked. */
+.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hairline { border-top: 1px solid currentColor; opacity: 0.15; }

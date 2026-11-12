@@ -13,7 +13,7 @@ export type AgendaDayData = {
 export const agenda: AgendaDayData[] = [
   {
     day: "Day 1",
-    date: "22 September 2026",
+    date: "22 September 2027",
     sessions: [
       {
         time: "08:00",
@@ -23,7 +23,7 @@ export const agenda: AgendaDayData[] = [
       {
         time: "09:00",
         title: "Opening Keynote",
-        description: "Dr. Amelia Santoso opens the summit with a look at coaching's next decade.",
+        description: "Speaker 1 opens the summit with a look at coaching's next decade.",
       },
       {
         time: "10:30",
@@ -49,7 +49,7 @@ export const agenda: AgendaDayData[] = [
   },
   {
     day: "Day 2",
-    date: "23 September 2026",
+    date: "23 September 2027",
     sessions: [
       {
         time: "08:30",
@@ -59,7 +59,7 @@ export const agenda: AgendaDayData[] = [
       {
         time: "09:00",
         title: "Keynote: Coaching Cultures That Stick",
-        description: "Fajar Nugroho on building coaching practices that outlast a single workshop.",
+        description: "Speaker 4 on building coaching practices that outlast a single workshop.",
       },
       {
         time: "10:30",

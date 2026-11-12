@@ -12,19 +12,47 @@ export function getSupabaseServerClient() {
   });
 }
 
-export type Registration = {
+export type Order = {
   id: string;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  quantity: number;
+  amount: string;
+  currency: string;
+  payment_provider: "paypal" | "xendit";
+  payment_status: "pending" | "paid" | "refunded";
+  payment_reference: string;
+  promo_code: string | null;
+  discount_amount: string;
+  created_at: string;
+};
+
+export type PromoCode = {
+  id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: string;
+  max_uses: number | null;
+  used_count: number;
+  valid_until: string | null;
+  active: boolean;
+  note: string | null;
+  created_at: string;
+};
+
+export type Ticket = {
+  id: string;
+  order_id: string;
   ticket_code: string;
   full_name: string;
   email: string;
   phone: string;
   country: string;
   company: string;
-  amount: string;
-  currency: string;
-  payment_provider: "paypal";
-  payment_status: "paid" | "refunded";
-  payment_reference: string;
+  ticket_type: string;
+  is_member: boolean;
+  member_id: string | null;
   checked_in_at: string | null;
   created_at: string;
 };

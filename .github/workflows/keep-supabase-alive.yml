@@ -1,0 +1,14 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Daily — comfortably under Supabase's 7-day inactivity auto-pause.
+    - cron: "0 3 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keep-alive endpoint
+        run: curl -fsS "${{ secrets.SITE_URL }}/api/keep-alive"
