@@ -60,7 +60,7 @@ const faqs = [
   {
     question: "Who is the conference for?",
     answer:
-      "The conference welcomes professional coaches, organizational leaders, people practitioners, educators and changemakers interested in the future of coaching.",
+      "Experienced coaches, emerging practitioners, coaching educators and organisational leaders from across the Asia-Pacific region and beyond.",
   },
   {
     question: "Where in Bali will it take place?",
@@ -230,13 +230,12 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-4 md:pt-6">
             <p className="font-semibold leading-7 text-(--brand-ink)">
-              Two inspiring days for coaches, leaders and changemakers across Asia Pacific to
-              connect, learn and imagine what comes next.
+              The future of coaching is unfolding, and the next frontier begins with us.
             </p>
             <p className="leading-7">
-              Join a vibrant professional community in Bali for conversations and experiences
-              designed to move coaching beyond the individual, and into the systems and
-              societies we shape together.
+              Join the Asia Pacific Alliance of Coaches (APAC) in Bali for a gathering of coaching
+              professionals, thought leaders, practitioners and change-makers from across the
+              Asia-Pacific region and beyond.
             </p>
             <Link
               href="/about"
@@ -542,8 +541,9 @@ export default function Home() {
             <br />
             starts <em className="font-extrabold text-(--brand-yellow)">with us.</em>
           </h2>
-          <p className="max-w-md leading-7 text-white/90">
-            Come curious. Leave connected, challenged and ready to shape what’s next.
+          <p className="max-w-lg leading-7 text-white/90">
+            The next frontier is not simply something we wait for. It is something we create
+            together.
           </p>
           <Link
             href="/register"
@@ -551,6 +551,9 @@ export default function Home() {
           >
             Register Now
           </Link>
+          <p className="pt-4 text-sm font-bold uppercase tracking-wide text-(--brand-yellow)">
+            One Region. One Coaching Community. One Shared Future.
+          </p>
         </div>
       </section>
     </div>

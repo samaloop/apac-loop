@@ -19,6 +19,7 @@ export default function RegisterSuccessPage() {
         description="We’ve sent a QR-code ticket to the email address you registered with. Bring it, printed or on your phone, to check in at the venue."
       />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-16 text-lg">
+        <p className="text-2xl font-bold">See you in Bali, 22–23 September 2027!</p>
         <p>
           Not receiving the email? Check your spam folder first, then{" "}
           <a href={helpWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">

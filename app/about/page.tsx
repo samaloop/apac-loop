@@ -24,11 +24,17 @@ const organizations = [
   },
 ];
 
-// The three pillars (people, systems, society), in the design's words.
+// The three pillars (people, systems, society), in the conference copy.
 const lenses = [
-  { title: "For people", body: "Deepen practice, presence and the quality of human connection." },
-  { title: "For systems", body: "Explore coaching as a catalyst for healthier organizations and cultures." },
-  { title: "For society", body: "Consider the contribution coaching can make to our shared future." },
+  { title: "For people", body: "Inspire people to unlock their potential and lead with purpose." },
+  {
+    title: "For systems",
+    body: "Transform systems to create more conscious, sustainable and human-centred organisations.",
+  },
+  {
+    title: "For society",
+    body: "Shape society by contributing to a more inclusive, connected and empowered future.",
+  },
 ];
 
 export default function AboutPage() {
@@ -62,9 +68,17 @@ export default function AboutPage() {
       <section className="bg-white">
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-24 md:grid-cols-2">
           <div className="flex flex-col justify-between gap-10">
-            <p className="text-4xl leading-tight tracking-[-0.05em] sm:text-6xl">
-              Two days to explore the next frontier of coaching.
-            </p>
+            <div className="flex flex-col gap-6">
+              <p className="text-4xl leading-tight tracking-[-0.05em] sm:text-6xl">
+                Two days to explore the next frontier of coaching.
+              </p>
+              <p className="text-lg leading-8">
+                As our world continues to evolve, coaching has an increasingly important role to
+                play in shaping individuals, organisations and communities. This conference is a
+                collective invitation to rethink possibilities, challenge conventional thinking and
+                expand the impact of coaching in a rapidly changing world.
+              </p>
+            </div>
             <Link
               href="/agenda"
               className="flex h-16 w-fit items-center rounded-full bg-(--brand-yellow) px-10 text-lg font-bold uppercase sm:h-24 sm:px-14 sm:text-2xl"

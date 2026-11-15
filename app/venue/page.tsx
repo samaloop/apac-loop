@@ -46,6 +46,10 @@ export default function VenuePage() {
             <div className="flex max-w-2xl flex-col gap-4 bg-(--brand-blue)/80 p-8 text-white backdrop-blur-sm sm:p-12">
               <h2 className="text-3xl font-bold uppercase sm:text-5xl">{event.location}</h2>
               <p className="leading-7 sm:text-lg">
+                Experience the power of connection, collaboration and community in Bali, a
+                destination renowned for its warmth, culture and inspiration.
+              </p>
+              <p className="leading-7 sm:text-lg">
                 The exact venue address has not yet been announced. Map, transfer and accessibility
                 details will be published here once confirmed.
               </p>

@@ -7,7 +7,7 @@ export const event = {
   startsAt: "2027-09-22T09:00:00+08:00",
   location: "Bali, Indonesia",
   description:
-    "Inspiring People . Transforming System . Shaping Society",
+    "Inspiring People. Transforming Systems. Shaping Society.",
   // TODO: placeholder — replace with the real support WhatsApp number
   // (international format, digits only, no "+" or leading 0) once confirmed.
   whatsapp: "6280000000000",

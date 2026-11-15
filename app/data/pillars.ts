@@ -13,7 +13,7 @@ export const pillars: Pillar[] = [
     short: "People",
     question: "How do we help people grow, lead, and create meaningful impact?",
     description:
-      "Coaching that helps individuals grow into their fullest capacity as leaders, professionals, and humans.",
+      "Helping people unlock their potential and lead with purpose.",
   },
   {
     id: "transforming-systems",
@@ -21,7 +21,7 @@ export const pillars: Pillar[] = [
     short: "Systems",
     question: "How do we create change that extends beyond the individual?",
     description:
-      "Moving beyond one-on-one coaching to reshape how teams, organizations, and institutions work.",
+      "Creating more conscious, sustainable and human-centred organisations.",
   },
   {
     id: "shaping-society",
@@ -29,6 +29,6 @@ export const pillars: Pillar[] = [
     short: "Society",
     question: "How can coaching contribute to the communities and societies we're part of?",
     description:
-      "Extending coaching's impact beyond the workplace, into communities and the systems that shape everyday life.",
+      "Contributing to a more inclusive, connected and empowered future.",
   },
 ];

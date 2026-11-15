@@ -59,6 +59,9 @@ export default function AgendaPage() {
           <div>
             <p className="text-base font-bold uppercase text-(--brand-cream)">Ready to join us?</p>
             <p className="text-3xl font-bold sm:text-4xl">Save your place in Bali.</p>
+            <p className="mt-2 text-base">
+              Be part of the movement. Be part of the conversation. Be part of THE NEXT FRONTIER.
+            </p>
           </div>
           <Link
             href="/register"
