@@ -389,9 +389,9 @@ export default function RegistrationForm() {
   const selectedOption = TICKET_OPTIONS.find((option) => option.kind === kind)!;
 
   return (
-    // The whole form renders at 85% of the design's size (text, fields,
+    // The whole form renders at 72% of the design's size (text, fields,
     // buttons and spacing alike), so it reads less heavy on the page.
-    <div className="flex flex-col gap-10 text-(--brand-ink)" style={{ zoom: 0.85 }}>
+    <div className="flex flex-col gap-10 text-(--brand-ink)" style={{ zoom: 0.72 }}>
       <Stepper step={step} />
 
       {/* The card, with the design's offset yellow block behind it */}
