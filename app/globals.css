@@ -48,7 +48,7 @@
 /* Site palette from the Figma redesign (royal blue, yellow, coral, teal,
    lilac on cream). Shared by every redesigned page, navbar and footer. */
 :root {
-  --brand-night: #08183a;
+  --brand-night: #00112c;
   --brand-blue: #003f85;
   --brand-ink: #003f85;
   --brand-tint: #ecf5ff;

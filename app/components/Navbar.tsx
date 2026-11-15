@@ -51,8 +51,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    // On the homepage the header shares the hero banner's navy so the two
-    // read as one block; every other page uses the brand blue of its hero.
+    // Figma: the homepage header is #00112c (--brand-night, the hero's navy),
+    // every other page's header is the brand blue of its hero.
     <header
       className={`${pathname === "/" ? "bg-(--brand-night)" : "bg-(--brand-blue)"} font-[family-name:var(--font-brand)] text-white`}
     >
