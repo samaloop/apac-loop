@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { helpWhatsAppUrl } from "@/app/data/event";
 
@@ -52,12 +51,12 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="bg-(--brand-blue) font-[family-name:var(--font-brand)] text-white">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
-        <Link href="/" onClick={() => setIsMenuOpen(false)} className="shrink-0" aria-label="Home">
-          <Image src="/images/logo_apac.webp" alt="APAC" width={140} height={79} className="h-10 w-auto" />
-        </Link>
-
+    // On the homepage the header shares the hero banner's navy so the two
+    // read as one block; every other page uses the brand blue of its hero.
+    <header
+      className={`${pathname === "/" ? "bg-(--brand-night)" : "bg-(--brand-blue)"} font-[family-name:var(--font-brand)] text-white`}
+    >
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-end gap-6 px-6 py-4">
         <nav className="hidden items-center gap-8 text-sm md:flex">
           <NavLinks pathname={pathname} />
           <Link
