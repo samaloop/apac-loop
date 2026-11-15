@@ -3,6 +3,10 @@ export const venue = {
   address: "Bali, Indonesia",
   description:
     "Full venue details will be announced soon. The conference will take place in Bali, Indonesia.",
+  // "View Location" target from the design's prototype (Google Maps on
+  // Bintang Bali Resort, Kuta). Confirm before launch: the copy still says
+  // the venue is not announced.
+  mapUrl: "https://www.google.com/maps/search/?api=1&query=Bintang+Bali+Resort+Kuta",
 };
 
 export type Hotel = {

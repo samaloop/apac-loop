@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// The redesign's one typeface, site-wide (regular to extra bold, plus the
+// bold italic used for the highlighted word in headings).
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "APAC Coaching Conference 2027 | Inspiring People . Transforming System . Shaping Society",
-  description:
-    "Inspiring People . Transforming System . Shaping Society",
+  title: "APAC Coaching Conference 2027 | Inspiring People · Transforming Systems · Shaping Society",
+  description: "Inspiring People · Transforming Systems · Shaping Society",
 };
 
 export default function RootLayout({
@@ -26,10 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Navbar />
         <main className="flex flex-1 flex-col">{children}</main>

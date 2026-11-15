@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
-import { event } from "../data/event";
-import SectionHeading from "../components/SectionHeading";
+import PageHero from "../components/PageHero";
 import RegistrationForm from "../components/RegistrationForm";
 
 export const metadata: Metadata = {
@@ -11,15 +11,30 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-20">
-      <SectionHeading
-        eyebrow="Register"
-        title="Save your seat"
-        description={`${event.date} · ${event.location}. Fill in your details and complete payment to receive your ticket by email.`}
+    <div className="flex flex-col bg-(--brand-cream) text-(--brand-ink)">
+      <PageHero
+        eyebrow="Registration is open"
+        eyebrowClassName="text-white"
+        title="Join us at"
+        highlight="the frontier."
+        description="Choose your ticket, add participant details and complete payment to receive your ticket by email."
       />
-      <Suspense>
-        <RegistrationForm />
-      </Suspense>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 pt-12 pb-20">
+        <Suspense>
+          <RegistrationForm />
+        </Suspense>
+        <p className="text-center text-base sm:text-lg">
+          Need more information first?{" "}
+          <Link href="/venue" className="font-bold underline-offset-4 hover:underline">
+            Plan your Bali stay
+          </Link>{" "}
+          or{" "}
+          <Link href="/agenda" className="font-bold underline-offset-4 hover:underline">
+            view the agenda
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }
