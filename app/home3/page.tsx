@@ -14,6 +14,7 @@ import {
 } from "../components/motifs";
 import RevealOnScroll from "./RevealOnScroll";
 import styles from "./home3.module.css";
+import RegisterLink from "@/app/components/RegisterLink";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -156,12 +157,12 @@ export default function Home3Page() {
           </div>
 
           <div className="flex flex-col gap-4 pt-2 sm:flex-row">
-            <Link
+            <RegisterLink
               href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Register Now
-            </Link>
+            </RegisterLink>
             <Link
               href="/speakers"
               className="flex h-12 items-center justify-center rounded-full border border-primary-foreground/30 px-8 text-sm font-semibold transition-colors hover:bg-primary-foreground/10"
@@ -245,12 +246,12 @@ export default function Home3Page() {
           <h2 className={`${styles.serif} max-w-xl text-2xl sm:text-3xl`}>
             If this sounds like your room, save your seat.
           </h2>
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 shrink-0 items-center justify-center rounded-full bg-(--sand) px-8 text-sm font-semibold text-(--ink) transition-opacity hover:opacity-90"
           >
             Register Now
-          </Link>
+          </RegisterLink>
         </div>
       </section>
 
@@ -462,12 +463,12 @@ export default function Home3Page() {
             </p>
           </div>
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-            <Link
+            <RegisterLink
               href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-(--sand) px-8 text-sm font-semibold text-(--ink) transition-opacity hover:opacity-90"
             >
               Register Now
-            </Link>
+            </RegisterLink>
             <a
               href={`https://wa.me/${event.whatsapp}`}
               target="_blank"

@@ -15,6 +15,7 @@ import {
   NetworkIcon,
   BadgeIcon,
 } from "../components/motifs";
+import RegisterLink from "@/app/components/RegisterLink";
 
 export const metadata: Metadata = {
   title: "Home (Reconstructed) | APAC Coaching Conference 2027",
@@ -95,12 +96,12 @@ export default function Home2Page() {
           </div>
 
           <div className="flex flex-col gap-4 pt-2 sm:flex-row">
-            <Link
+            <RegisterLink
               href="/register"
               className="flex h-12 items-center justify-center rounded-full bg-accent px-8 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               Register Now
-            </Link>
+            </RegisterLink>
             <Link
               href="/speakers"
               className="flex h-12 items-center justify-center rounded-full border border-primary-foreground/30 px-8 text-sm font-semibold transition-colors hover:bg-primary-foreground/10"
@@ -291,12 +292,12 @@ export default function Home2Page() {
           <h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
             Join us in Bali, {event.date}.
           </h2>
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 items-center justify-center rounded-full bg-primary px-8 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Register Now
-          </Link>
+          </RegisterLink>
         </div>
         <WaveDivider className="block h-10 w-full sm:h-16" color="var(--surface-muted)" />
       </section>

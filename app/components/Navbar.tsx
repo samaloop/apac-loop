@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { helpWhatsAppUrl } from "@/app/data/event";
+import RegisterLink from "@/app/components/RegisterLink";
 
 // Navigation from the redesign. /pricing, /speakers and /sponsors still
 // exist but are no longer linked here.
@@ -59,12 +60,12 @@ export default function Navbar() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-end gap-6 px-6 py-4">
         <nav className="hidden items-center gap-8 text-sm md:flex">
           <NavLinks pathname={pathname} />
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink) transition-opacity hover:opacity-90"
           >
             Register now
-          </Link>
+          </RegisterLink>
         </nav>
 
         <button
@@ -83,13 +84,13 @@ export default function Navbar() {
       {isMenuOpen && (
         <nav className="flex flex-col gap-1 border-t border-white/15 px-6 py-4 text-sm md:hidden">
           <NavLinks pathname={pathname} onNavigate={() => setIsMenuOpen(false)} />
-          <Link
+          <RegisterLink
             href="/register"
             onClick={() => setIsMenuOpen(false)}
             className="mt-3 flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) text-sm font-bold uppercase text-(--brand-ink)"
           >
             Register now
-          </Link>
+          </RegisterLink>
         </nav>
       )}
     </header>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import PageHero from "../components/PageHero";
+import RegisterLink from "@/app/components/RegisterLink";
 
 export const metadata: Metadata = {
   title: "Agenda | APAC Coaching Conference 2027",
@@ -63,12 +63,12 @@ export default function AgendaPage() {
               Be part of the movement. Be part of the conversation. Be part of THE NEXT FRONTIER.
             </p>
           </div>
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 w-fit items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink)"
           >
             Register now
-          </Link>
+          </RegisterLink>
         </div>
       </div>
     </div>

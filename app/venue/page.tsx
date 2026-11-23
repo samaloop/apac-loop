@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { event } from "../data/event";
 import PageHero from "../components/PageHero";
+import RegisterLink from "@/app/components/RegisterLink";
 
 export const metadata: Metadata = {
   title: "Venue & Bali | APAC Coaching Conference 2027",
@@ -91,12 +91,12 @@ export default function VenuePage() {
           <p className="text-lg sm:text-2xl">
             Hotel details will also be shared with registered participants when confirmed.
           </p>
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 w-fit shrink-0 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase"
           >
             Register now
-          </Link>
+          </RegisterLink>
         </div>
       </section>
     </div>

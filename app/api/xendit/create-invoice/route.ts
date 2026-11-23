@@ -1,4 +1,5 @@
 import { createInvoice } from "@/lib/xendit";
+import { registrationOpen } from "@/app/data/registration";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
@@ -25,6 +26,10 @@ const XENDIT_METHOD_CODES: Partial<Record<PaymentMethodId, string[]>> = {
 };
 
 export async function POST(request: Request) {
+  if (!registrationOpen) {
+    return Response.json({ error: "Registration is not open yet" }, { status: 403 });
+  }
+
   const body = (await request.json()) as CreateInvoiceRequestBody;
 
   const ticketsError = validateTickets(body.tickets);

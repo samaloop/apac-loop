@@ -1,4 +1,5 @@
 import { createOrder } from "@/lib/paypal";
+import { registrationOpen } from "@/app/data/registration";
 import { getPaymentMethod, calculateTotal } from "@/app/data/fees";
 import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
 import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
@@ -6,6 +7,10 @@ import { validatePromoCode } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  if (!registrationOpen) {
+    return Response.json({ error: "Registration is not open yet" }, { status: 403 });
+  }
+
   const body = (await request.json()) as {
     method?: string;
     tickets?: RegistrationFields[];

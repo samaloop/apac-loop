@@ -4,6 +4,7 @@ import { event, helpWhatsAppUrl } from "./data/event";
 import { pillars } from "./data/pillars";
 import { venue } from "./data/venue";
 import Countdown from "./components/Countdown";
+import RegisterLink from "@/app/components/RegisterLink";
 
 // Speakers confirmed so far (from the design).
 const confirmedSpeakers = [
@@ -448,7 +449,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Link
+                <RegisterLink
                   href="/register"
                   className={`flex h-12 w-full max-w-56 items-center justify-center rounded-full text-sm font-bold ${
                     ticket.featured
@@ -457,7 +458,7 @@ export default function Home() {
                   }`}
                 >
                   Register Interest
-                </Link>
+                </RegisterLink>
               </div>
             ))}
           </div>
@@ -545,12 +546,12 @@ export default function Home() {
             The next frontier is not simply something we wait for. It is something we create
             together.
           </p>
-          <Link
+          <RegisterLink
             href="/register"
             className="flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) px-10 text-sm font-bold text-(--brand-ink)"
           >
             Register Now
-          </Link>
+          </RegisterLink>
           <p className="pt-4 text-sm font-bold uppercase tracking-wide text-(--brand-yellow)">
             One Region. One Coaching Community. One Shared Future.
           </p>

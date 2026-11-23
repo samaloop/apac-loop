@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { PricingTier } from "@/app/data/pricing";
 import { pricingFeatures, formatIDR } from "@/app/data/pricing";
+import RegisterLink from "@/app/components/RegisterLink";
 
 const statusStyles: Record<PricingTier["status"], string> = {
   past: "bg-surface-muted text-foreground/50 line-through",
@@ -69,7 +69,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
 
       <div className="flex items-center justify-between pt-1">
         <span className="font-mono text-xs text-foreground/40">{tier.sku}</span>
-        <Link
+        <RegisterLink
           href={`/register?tier=${tier.id}`}
           className={`rounded-full px-6 py-2 text-sm font-semibold transition-opacity hover:opacity-90 ${
             tier.featured
@@ -78,7 +78,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
           }`}
         >
           Book Now
-        </Link>
+        </RegisterLink>
       </div>
     </div>
   );
