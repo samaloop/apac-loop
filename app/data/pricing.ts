@@ -91,6 +91,21 @@ export function formatIDR(usdAmount: number): string {
   return `Rp ${Math.round(usdAmount * USD_TO_IDR_RATE).toLocaleString("id-ID")}`;
 }
 
+// Placeholder rate for showing an approximate SGD price — display only. Xendit
+// can only charge IDR on an Indonesian account, so nothing is ever billed in
+// SGD; update this manually to a current rate.
+export const USD_TO_SGD_RATE = 1.3;
+
+export function formatSGDApprox(usdAmount: number): string {
+  return `≈ S$ ${Math.round(usdAmount * USD_TO_SGD_RATE).toLocaleString("en-SG")}`;
+}
+
+// For IDR totals that include the IDR payment fee, back to USD so they can be
+// shown in SGD too.
+export function idrToUSD(idrAmount: number): number {
+  return idrAmount / USD_TO_IDR_RATE;
+}
+
 export const groupRate = {
   minPeople: 3,
   discountPercent: 10,

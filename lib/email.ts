@@ -116,7 +116,7 @@ function buildTicketEmailHtml({ name, ticketCode }: { name: string; ticketCode: 
 }
 
 export async function sendTicketEmail({ to, name, ticketCode }: SendTicketEmailArgs) {
-  const from = process.env.EMAIL_FROM_DEV;
+  const from = process.env.EMAIL_FROM;
   if (!from) {
     throw new Error("Missing EMAIL_FROM");
   }
@@ -124,7 +124,9 @@ export async function sendTicketEmail({ to, name, ticketCode }: SendTicketEmailA
   const qrBuffer = await QRCode.toBuffer(ticketCode, { width: 320, margin: 2 });
   const resend = getResendClient();
 
-  await resend.emails.send({
+  // Resend reports API failures (unverified domain, test sender, bad key) in
+  // `error` instead of throwing, so surface them — callers count rejections.
+  const { error } = await resend.emails.send({
     from,
     to,
     subject: `Your ticket for ${event.name}`,
@@ -137,6 +139,10 @@ export async function sendTicketEmail({ to, name, ticketCode }: SendTicketEmailA
       },
     ],
   });
+  if (error) {
+    console.error(`Resend rejected the ticket email to ${to}:`, error);
+    throw new Error(`Resend: ${error.message}`);
+  }
 }
 
 export type AdminNotificationOrder = {
@@ -221,20 +227,23 @@ export async function sendAdminNotification({
   attendees: AdminNotificationAttendee[];
 }) {
   const to = process.env.ADMIN_NOTIFICATION_EMAIL;
-  const from = process.env.EMAIL_FROM_DEV;
+  const from = process.env.EMAIL_FROM;
   if (!to || !from) {
-    console.error("Skipping admin notification: ADMIN_NOTIFICATION_EMAIL or EMAIL_FROM_DEV not configured");
+    console.error("Skipping admin notification: ADMIN_NOTIFICATION_EMAIL or EMAIL_FROM not configured");
     return;
   }
 
   try {
     const resend = getResendClient();
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from,
       to,
       subject: `[${order.provider}] New registration — ${order.quantity} ticket${order.quantity > 1 ? "s" : ""}, ${order.amount} ${order.currency}`,
       html: buildAdminNotificationHtml({ order, attendees }),
     });
+    if (error) {
+      console.error("Resend rejected the admin notification email:", error);
+    }
   } catch (error) {
     console.error("Failed to send admin notification email", error);
   }

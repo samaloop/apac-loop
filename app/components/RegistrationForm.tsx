@@ -20,16 +20,21 @@ import {
   DEFAULT_TIER_ID,
   USD_TO_IDR_RATE,
   formatIDR,
+  formatSGDApprox,
+  idrToUSD,
 } from "@/app/data/pricing";
 import { helpWhatsAppUrl } from "@/app/data/event";
 import { promoDiscountUSD, describePromo, type AppliedPromo } from "@/app/data/promo";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
+import { countries, DEFAULT_DIAL_COUNTRY } from "@/app/data/countries";
 
 type Attendee = {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
+  // ISO code of the country picked in the phone's dialling-code dropdown.
+  phoneCountry: string;
   country: string;
   company: string;
   memberId: string;
@@ -52,12 +57,28 @@ const STEPS = ["Choose ticket", "Your details", "Review & payment"];
 const MIN_GROUP_SIZE = 2;
 
 function emptyAttendee(): Attendee {
-  return { firstName: "", lastName: "", email: "", phone: "", country: "", company: "", memberId: "" };
+  return {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    phoneCountry: DEFAULT_DIAL_COUNTRY,
+    country: "",
+    company: "",
+    memberId: "",
+  };
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type FieldKey = Exclude<keyof Attendee, "memberId">;
+// A phone number needs at least this many digits after the dialling code.
+const MIN_PHONE_DIGITS = 6;
+
+function dialCodeFor(countryCode: string): string {
+  return countries.find((c) => c.code === countryCode)?.dial ?? "";
+}
+
+type FieldKey = Exclude<keyof Attendee, "memberId" | "phoneCountry">;
 
 const fields: { key: FieldKey; label: string; type: string; autoComplete: string }[] = [
   { key: "firstName", label: "First name", type: "text", autoComplete: "given-name" },
@@ -97,7 +118,8 @@ function toPayload(attendees: Attendee[], kind: TicketKind, tierId: string): Tic
   return attendees.map((attendee) => ({
     name: `${attendee.firstName.trim()} ${attendee.lastName.trim()}`.trim(),
     email: attendee.email,
-    phone: attendee.phone,
+    // Stored as one string, e.g. "+62 81234567890".
+    phone: `+${dialCodeFor(attendee.phoneCountry)} ${attendee.phone.trim()}`,
     country: attendee.country,
     company: attendee.company,
     ticketType: tierId,
@@ -147,9 +169,11 @@ function formatAmount(amount: number, currency: "IDR" | "USD"): string {
 
 function attendeeMissingFields(attendee: Attendee, kind: TicketKind): string[] {
   const missing = fields
-    .filter(({ key }) =>
-      key === "email" ? !EMAIL_PATTERN.test(attendee.email.trim()) : attendee[key].trim() === ""
-    )
+    .filter(({ key }) => {
+      if (key === "email") return !EMAIL_PATTERN.test(attendee.email.trim());
+      if (key === "phone") return attendee.phone.replace(/\D/g, "").length < MIN_PHONE_DIGITS;
+      return attendee[key].trim() === "";
+    })
     .map(({ label }) => label);
   if (kind === "member" && !attendee.memberId.trim()) {
     missing.push("APAC Member ID");
@@ -160,8 +184,10 @@ function attendeeMissingFields(attendee: Attendee, kind: TicketKind): string[] {
 const xenditMethods = paymentMethods.filter((method) => method.provider === "xendit");
 const paypalMethods = paymentMethods.filter((method) => method.provider === "paypal");
 
-const inputClass =
-  "h-14 w-full border border-(--brand-blue) bg-white px-4 text-base text-(--brand-ink) outline-none focus:border-2";
+// Field look without a width, for fields that size themselves in a row.
+const fieldClass =
+  "h-14 border border-(--brand-blue) bg-white px-4 text-base text-(--brand-ink) outline-none focus:border-2";
+const inputClass = `${fieldClass} w-full`;
 
 function ErrorNotice({ children }: { children: ReactNode }) {
   return (
@@ -384,8 +410,8 @@ export default function RegistrationForm() {
     }
   }
 
-  const priceFor = (option: TicketKind) =>
-    option === "member" ? formatIDR(tier.memberPrice) : formatIDR(tier.nonMemberPrice);
+  const priceUSDFor = (option: TicketKind) =>
+    option === "member" ? tier.memberPrice : tier.nonMemberPrice;
   const selectedOption = TICKET_OPTIONS.find((option) => option.kind === kind)!;
 
   return (
@@ -436,7 +462,10 @@ export default function RegistrationForm() {
                         <span className="text-sm sm:text-lg">{option.audience}</span>
                       </span>
                       <span className="shrink-0 text-right text-lg font-bold tracking-tight sm:text-3xl">
-                        {priceFor(option.kind)}
+                        {formatIDR(priceUSDFor(option.kind))}
+                        <span className="block text-xs font-medium tracking-normal sm:text-sm">
+                          {formatSGDApprox(priceUSDFor(option.kind))}
+                        </span>
                         {option.kind === "group" && (
                           <span className="block text-xs font-medium tracking-normal sm:text-sm">per person</span>
                         )}
@@ -497,22 +526,87 @@ export default function RegistrationForm() {
                       </legend>
                     )}
                     <div className="grid grid-cols-1 gap-x-16 gap-y-6 md:grid-cols-2">
-                      {fields.map(({ key, label, type, autoComplete }) => (
-                        <label key={key} className="flex flex-col gap-3">
-                          <span className="text-lg font-bold sm:text-2xl">{label} *</span>
-                          <input
-                            type={type}
-                            autoComplete={index === 0 ? autoComplete : "off"}
-                            value={attendee[key]}
-                            onChange={(event) => updateAttendee(index, key, event.target.value)}
-                            aria-invalid={missing.includes(label)}
-                            className={`${inputClass} ${missing.includes(label) ? "border-2 border-[#c22f2f]" : ""}`}
-                          />
-                          {key === "email" && (
-                            <span className="text-sm">The ticket is sent to this email.</span>
-                          )}
-                        </label>
-                      ))}
+                      {fields.map(({ key, label, type, autoComplete }) => {
+                        const invalid = missing.includes(label);
+                        const errorClass = invalid ? "border-2 border-[#c22f2f]" : "";
+
+                        if (key === "phone") {
+                          return (
+                            <div key={key} className="flex flex-col gap-3">
+                              <span className="text-lg font-bold sm:text-2xl" id={`phone-label-${index}`}>
+                                {label} *
+                              </span>
+                              <div className="flex gap-2" role="group" aria-labelledby={`phone-label-${index}`}>
+                                <select
+                                  value={attendee.phoneCountry}
+                                  onChange={(event) => updateAttendee(index, "phoneCountry", event.target.value)}
+                                  aria-label="Country dialling code"
+                                  className={`${fieldClass} w-32 shrink-0 px-2`}
+                                >
+                                  {countries.map((country) => (
+                                    <option key={country.code} value={country.code}>
+                                      {country.code} +{country.dial}
+                                    </option>
+                                  ))}
+                                </select>
+                                <input
+                                  type="tel"
+                                  inputMode="tel"
+                                  autoComplete={index === 0 ? "tel-national" : "off"}
+                                  placeholder=""
+                                  value={attendee.phone}
+                                  onChange={(event) => updateAttendee(index, "phone", event.target.value)}
+                                  aria-label="Phone number"
+                                  aria-invalid={invalid}
+                                  className={`${fieldClass} min-w-0 flex-1 ${errorClass}`}
+                                />
+                              </div>
+                              <span className="text-sm">Preferably your WhatsApp number.</span>
+                            </div>
+                          );
+                        }
+
+                        if (key === "country") {
+                          return (
+                            <label key={key} className="flex flex-col gap-3">
+                              <span className="text-lg font-bold sm:text-2xl">{label} *</span>
+                              <select
+                                value={attendee.country}
+                                onChange={(event) => updateAttendee(index, "country", event.target.value)}
+                                autoComplete={index === 0 ? "country-name" : "off"}
+                                aria-invalid={invalid}
+                                className={`${inputClass} ${errorClass}`}
+                              >
+                                <option value="" disabled>
+                                  Select a country or region
+                                </option>
+                                {countries.map((country) => (
+                                  <option key={country.code} value={country.name}>
+                                    {country.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          );
+                        }
+
+                        return (
+                          <label key={key} className="flex flex-col gap-3">
+                            <span className="text-lg font-bold sm:text-2xl">{label} *</span>
+                            <input
+                              type={type}
+                              autoComplete={index === 0 ? autoComplete : "off"}
+                              value={attendee[key]}
+                              onChange={(event) => updateAttendee(index, key, event.target.value)}
+                              aria-invalid={invalid}
+                              className={`${inputClass} ${errorClass}`}
+                            />
+                            {key === "email" && (
+                              <span className="text-sm">The ticket is sent to this email.</span>
+                            )}
+                          </label>
+                        );
+                      })}
                       {kind === "member" && (
                         <label className="flex flex-col gap-3">
                           <span className="text-lg font-bold sm:text-2xl">APAC Member ID *</span>
@@ -571,8 +665,11 @@ export default function RegistrationForm() {
                     {attendees.length > 1 && ` × ${attendees.length}`}
                   </p>
                 </div>
-                <p className="text-2xl font-bold tracking-tight text-(--brand-yellow-text) sm:text-4xl">
+                <p className="text-right text-2xl font-bold tracking-tight text-(--brand-yellow-text) sm:text-4xl">
                   {formatIDR(basePriceUSDFor(tickets))}
+                  <span className="block text-sm font-medium tracking-normal text-white sm:text-base">
+                    {formatSGDApprox(basePriceUSDFor(tickets))}
+                  </span>
                 </p>
               </div>
 
@@ -681,13 +778,28 @@ export default function RegistrationForm() {
                     </div>
                     <div className="mt-2 flex items-center justify-between border-t border-(--brand-rule) pt-3">
                       <span className="font-bold">Total</span>
-                      <span className="text-2xl font-bold">
+                      <span className="text-right text-2xl font-bold">
                         {formatAmount(
                           calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo)),
                           selectedMethod.currency
                         )}
+                        {selectedMethod.currency === "IDR" && (
+                          <span className="block text-sm font-medium">
+                            {formatSGDApprox(
+                              idrToUSD(
+                                calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo))
+                              )
+                            )}
+                          </span>
+                        )}
                       </span>
                     </div>
+                    {selectedMethod.currency === "IDR" && (
+                      <p className="text-sm">
+                        SGD shown for reference. You will be charged in IDR; your card’s bank converts the
+                        amount.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
