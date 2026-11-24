@@ -110,9 +110,14 @@ export async function POST(request: Request) {
       sendTicketEmail({ to: ticket.email, name: ticket.full_name, ticketCode: ticket.ticket_code })
     )
   );
-  const emailFailures = emailResults.filter((result) => result.status === "rejected").length;
+  const emailRejections = emailResults.filter((result) => result.status === "rejected");
+  const emailFailures = emailRejections.length;
   if (emailFailures > 0) {
-    console.error(`Failed to send ${emailFailures} of ${tickets.length} ticket emails for order`, order.id);
+    console.error(
+      `Failed to send ${emailFailures} of ${tickets.length} ticket emails for order`,
+      order.id,
+      emailRejections.map((rejection) => String(rejection.reason))
+    );
   }
 
   await sendAdminNotification({
