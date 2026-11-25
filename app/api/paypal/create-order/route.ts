@@ -5,8 +5,12 @@ import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
 import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
 import { validatePromoCode } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "paypal-create", 10, 60_000);
+  if (limited) return limited;
+
   if (!registrationOpen) {
     return Response.json({ error: "Registration is not open yet" }, { status: 403 });
   }

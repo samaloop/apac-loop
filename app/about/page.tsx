@@ -18,7 +18,7 @@ const organizations = [
   },
   {
     eyebrow: "About LOOP",
-    logo: { src: "/images/design/logo-loop-new.png", alt: "Loop Institute of Coaching", width: 316, height: 108 },
+    logo: { src: "/images/design/logo-loop-new.webp", alt: "Loop Institute of Coaching", width: 316, height: 108 },
     lead: "The First ICF-Based Coaching Institution in Indonesia",
     body: "Loop Institute of Coaching is the official local partner of APAC Coaching Conference 2027 in Bali. More about Loop’s role in the conference will be published soon.",
   },

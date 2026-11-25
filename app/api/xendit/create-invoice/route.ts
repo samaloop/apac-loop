@@ -6,6 +6,7 @@ import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/da
 import { getPricingTier, tierPriceFor, USD_TO_IDR_RATE } from "@/app/data/pricing";
 import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
 import { validatePromoCode } from "@/lib/promo";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { event } from "@/app/data/event";
 
 type CreateInvoiceRequestBody = {
@@ -26,6 +27,9 @@ const XENDIT_METHOD_CODES: Partial<Record<PaymentMethodId, string[]>> = {
 };
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "xendit-create", 10, 60_000);
+  if (limited) return limited;
+
   if (!registrationOpen) {
     return Response.json({ error: "Registration is not open yet" }, { status: 403 });
   }

@@ -41,7 +41,7 @@ export default function VenuePage() {
       {/* Photo with the destination card overlapping its lower left */}
       <section className="relative">
         <div className="relative flex min-h-[28rem] w-full items-end sm:h-[37.5rem]">
-          <Image src="/images/design/venue-hero.png" alt="Bali temple by the lake" fill sizes="100vw" className="object-cover" />
+          <Image src="/images/design/venue-hero.webp" alt="Bali temple by the lake" fill sizes="100vw" className="object-cover" />
           <div className="relative mx-auto w-full max-w-6xl px-6 pt-40">
             <div className="flex max-w-2xl flex-col gap-4 bg-(--brand-blue)/80 p-8 text-white backdrop-blur-sm sm:p-12">
               <h2 className="text-3xl font-bold uppercase sm:text-5xl">{event.location}</h2>

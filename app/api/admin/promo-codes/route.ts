@@ -2,6 +2,7 @@ import { isAdminRequest, unauthorizedResponse } from "@/lib/admin-auth";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { generatePromoCodeString } from "@/lib/promo";
 import { normalizePromoCode, type PromoDiscountType } from "@/app/data/promo";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const MAX_CODES_PER_BATCH = 100;
 
@@ -19,6 +20,8 @@ type GenerateRequestBody = {
 };
 
 export async function GET(request: Request) {
+  const limited = enforceRateLimit(request, "admin", 20, 60_000);
+  if (limited) return limited;
   if (!isAdminRequest(request)) return unauthorizedResponse();
 
   const supabase = getSupabaseServerClient();
@@ -35,6 +38,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = enforceRateLimit(request, "admin", 20, 60_000);
+  if (limited) return limited;
   if (!isAdminRequest(request)) return unauthorizedResponse();
 
   const body = (await request.json()) as GenerateRequestBody;
@@ -115,6 +120,8 @@ export async function POST(request: Request) {
 
 // Turn a code on/off without deleting it (keeps its usage history).
 export async function PATCH(request: Request) {
+  const limited = enforceRateLimit(request, "admin", 20, 60_000);
+  if (limited) return limited;
   if (!isAdminRequest(request)) return unauthorizedResponse();
 
   const body = (await request.json()) as { id?: string; active?: boolean };

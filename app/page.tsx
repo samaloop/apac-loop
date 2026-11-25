@@ -11,12 +11,12 @@ const confirmedSpeakers = [
   {
     name: "Dr Brian Underhill",
     role: "Founder and CEO of CoachSource",
-    photo: "/images/design/speaker-brian-underhill.jpg",
+    photo: "/images/design/speaker-brian-underhill.webp",
   },
   {
     name: "Jean-François Cousin",
     role: "Master Certified Coach",
-    photo: "/images/design/speaker-jean-francois-cousin.png",
+    photo: "/images/design/speaker-jean-francois-cousin.webp",
   },
 ];
 
@@ -330,7 +330,7 @@ export default function Home() {
           <div className="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
             <div className="relative aspect-[377/429] w-full max-w-sm bg-(--brand-night)">
               <Image
-                src="/images/design/conference-hall.png"
+                src="/images/design/conference-hall.webp"
                 alt="Conference hall with an audience"
                 fill
                 sizes="(min-width: 768px) 384px, 100vw"
@@ -376,10 +376,10 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid h-[32rem] grid-cols-2 grid-rows-2 gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
-            <Photo src="/images/design/bali-1.png" alt="Lake temple in Bali at sunset" className="row-span-2" />
-            <Photo src="/images/design/bali-2.png" alt="Temple and flowers by a Bali lake" />
-            <Photo src="/images/design/bali-4.png" alt="Bali temple gate at sunset" className="hidden md:block md:row-span-2" />
-            <Photo src="/images/design/bali-3.png" alt="Resort in Bali" />
+            <Photo src="/images/design/bali-1.webp" alt="Lake temple in Bali at sunset" className="row-span-2" />
+            <Photo src="/images/design/bali-2.webp" alt="Temple and flowers by a Bali lake" />
+            <Photo src="/images/design/bali-4.webp" alt="Bali temple gate at sunset" className="hidden md:block md:row-span-2" />
+            <Photo src="/images/design/bali-3.webp" alt="Resort in Bali" />
           </div>
           <div className="flex flex-col gap-6 border-2 border-white/80 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
@@ -534,7 +534,7 @@ export default function Home() {
 
       {/* Closing call to action */}
       <section className="relative overflow-hidden bg-(--brand-blue) text-white">
-        <Image src="/images/design/cta-audience.png" alt="" fill sizes="100vw" className="object-cover" />
+        <Image src="/images/design/cta-audience.webp" alt="" fill sizes="100vw" className="object-cover" />
         <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center gap-6 px-6 py-24 text-center">
           <p className="text-lg font-bold uppercase text-(--brand-yellow)">Bali · {event.date}</p>
           <h2 className="text-4xl font-extrabold uppercase leading-[1.05] tracking-tight sm:text-6xl">
