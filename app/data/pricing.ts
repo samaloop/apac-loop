@@ -5,9 +5,9 @@ export type PricingTier = {
   name: string;
   status: PricingTierStatus;
   statusLabel: string;
-  // Stored in USD — the source of truth PayPal/Xendit charges are computed
-  // from (see tierPriceFor). Displayed converted to Rupiah everywhere
-  // (formatIDR) except the PayPal checkout step, which genuinely bills USD.
+  // Stored in SGD — the source of truth and the headline price shown to
+  // buyers (formatSGD). PayPal is charged in SGD directly; the Indonesian
+  // Xendit account can only bill IDR, so its charge is converted (sgdToIDR).
   nonMemberPrice: number;
   memberPrice: number;
   memberDiscountPercent: number;
@@ -71,39 +71,35 @@ export function getPricingTier(id: string): PricingTier | undefined {
   return pricingTiers.find((tier) => tier.id === id);
 }
 
-// Member status is self-declared on the form — there's no membership lookup
-// yet, so this price is applied immediately and reconciled manually later
-// (see the Member ID collected alongside it).
+// The member price is only accepted by the payment routes when the order is
+// backed by a confirmed APAC membership (lib/apac.ts checkMemberOrder).
 export function tierPriceFor(tier: PricingTier, isMember: boolean): number {
   return isMember ? tier.memberPrice : tier.nonMemberPrice;
 }
 
 export const DEFAULT_TIER_ID = "early-bird";
 
-// Dummy placeholder rate for converting the USD-denominated tier prices into
-// IDR for Xendit — replace with a real FX source before taking live payments.
-export const USD_TO_IDR_RATE = 15800;
+// Tier prices are stored in SGD (the source of truth and the headline price).
+// PayPal is charged in SGD directly; the Indonesian Xendit account can only
+// charge IDR, so the SGD price is converted with the daily ECB rate fetched in
+// lib/fx.ts. This fallback is used only when that fetch fails and no good
+// rate is cached yet — update it by hand now and then.
+export const SGD_TO_IDR_FALLBACK = 14250; // 1 SGD ≈ 14,250 IDR (Nov 2026)
 
-// Tier prices are stored in USD (the source of truth PayPal/Xendit pricing
-// is computed from), but displayed to browsing users in Rupiah everywhere
-// except the PayPal checkout step itself, which genuinely charges in USD.
-export function formatIDR(usdAmount: number): string {
-  return `Rp ${Math.round(usdAmount * USD_TO_IDR_RATE).toLocaleString("id-ID")}`;
+// SGD → IDR: the whole-Rupiah amount Xendit is actually charged.
+export function sgdToIDR(sgdAmount: number, rate: number): number {
+  return Math.round(sgdAmount * rate);
 }
 
-// Placeholder rate for showing an approximate SGD price — display only. Xendit
-// can only charge IDR on an Indonesian account, so nothing is ever billed in
-// SGD; update this manually to a current rate.
-export const USD_TO_SGD_RATE = 1.3;
-
-export function formatSGDApprox(usdAmount: number): string {
-  return `≈ S$ ${Math.round(usdAmount * USD_TO_SGD_RATE).toLocaleString("en-SG")}`;
+// The headline price, shown everywhere the main price appears.
+export function formatSGD(sgdAmount: number): string {
+  return `S$ ${Math.round(sgdAmount).toLocaleString("en-SG")}`;
 }
 
-// For IDR totals that include the IDR payment fee, back to USD so they can be
-// shown in SGD too.
-export function idrToUSD(idrAmount: number): number {
-  return idrAmount / USD_TO_IDR_RATE;
+// Convert an amount in a provider's charge currency back to SGD. PayPal is
+// already SGD (identity); only Xendit's IDR needs converting.
+export function methodAmountToSGD(amount: number, currency: "IDR" | "SGD", rate: number): number {
+  return currency === "IDR" ? amount / rate : amount;
 }
 
 export const groupRate = {

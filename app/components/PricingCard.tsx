@@ -1,5 +1,5 @@
 import type { PricingTier } from "@/app/data/pricing";
-import { pricingFeatures, formatIDR } from "@/app/data/pricing";
+import { pricingFeatures, formatSGD } from "@/app/data/pricing";
 import RegisterLink from "@/app/components/RegisterLink";
 
 const statusStyles: Record<PricingTier["status"], string> = {
@@ -36,7 +36,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
         <div className="flex flex-col gap-0.5">
           <span className="text-sm text-foreground/60">Non-Member</span>
           <span className="whitespace-nowrap text-xl font-semibold text-foreground">
-            {formatIDR(tier.nonMemberPrice)}
+            {formatSGD(tier.nonMemberPrice)}
           </span>
         </div>
         <div className="flex flex-col gap-1 rounded-2xl bg-surface-muted px-4 py-3">
@@ -47,7 +47,7 @@ export default function PricingCard({ tier }: { tier: PricingTier }) {
             </span>
           </div>
           <span className="whitespace-nowrap text-xl font-bold text-accent">
-            {formatIDR(tier.memberPrice)}
+            {formatSGD(tier.memberPrice)}
           </span>
         </div>
       </div>

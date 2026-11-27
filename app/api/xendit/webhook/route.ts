@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
 import { redeemPromoCode } from "@/lib/promo";
+import { consumeVerification } from "@/lib/apac";
 
 type XenditInvoiceWebhookBody = {
   id: string;
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
     .update({ payment_status: "paid" })
     .eq("payment_reference", body.id)
     .eq("payment_status", "pending")
-    .select("id, amount, currency, quantity, promo_code")
+    .select("id, amount, currency, quantity, promo_code, apac_verification_id")
     .single();
 
   if (updateError || !order) {
@@ -93,6 +94,9 @@ export async function POST(request: Request) {
 
   if (order.promo_code) {
     await redeemPromoCode(order.promo_code);
+  }
+  if (order.apac_verification_id) {
+    await consumeVerification(order.apac_verification_id, order.id);
   }
 
   const { data: tickets, error: ticketsError } = await supabase

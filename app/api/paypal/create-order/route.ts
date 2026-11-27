@@ -2,10 +2,11 @@ import { createOrder } from "@/lib/paypal";
 import { registrationOpen } from "@/app/data/registration";
 import { getPaymentMethod, calculateTotal } from "@/app/data/fees";
 import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
-import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
+import { promoDiscount, type AppliedPromo } from "@/app/data/promo";
 import { validatePromoCode } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { checkMemberOrder } from "@/lib/apac";
 
 export async function POST(request: Request) {
   const limited = enforceRateLimit(request, "paypal-create", 10, 60_000);
@@ -27,14 +28,19 @@ export async function POST(request: Request) {
   }
   const tickets = body.tickets as Required<RegistrationFields>[];
 
+  // The member price needs a confirmed APAC membership (see lib/apac.ts).
+  const memberCheck = await checkMemberOrder(request, tickets);
+  if ("error" in memberCheck) {
+    return Response.json({ error: memberCheck.error }, { status: 403 });
+  }
+
   const method = getPaymentMethod(body.method ?? "");
   if (!method || method.provider !== "paypal") {
     return Response.json({ error: "Invalid payment method" }, { status: 400 });
   }
 
   // Ticket type is validated (against pricingTiers) by validateTickets above.
-  // Member status is self-declared (no membership lookup exists yet), so the
-  // member price is applied immediately and reconciled manually later.
+  // Member orders were checked against a confirmed APAC membership above.
   const basePrice = tickets.reduce((sum, ticket) => {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
@@ -48,11 +54,13 @@ export async function POST(request: Request) {
     }
     promo = promoResult.promo;
   }
-  const discountedBase = basePrice - promoDiscountUSD(promo, basePrice);
-  const total = calculateTotal(method, discountedBase).toFixed(2);
+  // basePrice is in SGD (the base currency) and PayPal is charged in SGD, so
+  // the discounted subtotal goes straight to the fee/total with no conversion.
+  const discountedBaseSGD = basePrice - promoDiscount(promo, basePrice);
+  const total = calculateTotal(method, discountedBaseSGD).toFixed(2);
 
   try {
-    const orderId = await createOrder(total, "USD", promo?.code);
+    const orderId = await createOrder(total, "SGD", promo?.code);
     return Response.json({ id: orderId });
   } catch (error) {
     console.error("Failed to create PayPal order", error);

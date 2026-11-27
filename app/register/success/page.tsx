@@ -30,13 +30,13 @@ export default function RegisterSuccessPage() {
         <div className="flex flex-wrap gap-4">
           <Link
             href="/venue"
-            className="flex h-12 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase"
+            className="btn-yellow flex h-12 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase"
           >
             Plan your Bali stay
           </Link>
           <Link
             href="/"
-            className="flex h-12 items-center rounded-full border border-(--brand-blue) px-7 text-sm font-bold uppercase"
+            className="btn-outline flex h-12 items-center rounded-full border border-(--brand-blue) px-7 text-sm font-bold uppercase"
           >
             Back to home
           </Link>

@@ -4,7 +4,8 @@ import { sendTicketEmail, sendAdminNotification } from "@/lib/email";
 import { findPromoCode, redeemPromoCode, toAppliedPromo } from "@/lib/promo";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPricingTier, tierPriceFor } from "@/app/data/pricing";
-import { promoDiscountUSD } from "@/app/data/promo";
+import { promoDiscount } from "@/app/data/promo";
+import { consumeVerification, getMemberVerification, verificationIdFrom } from "@/lib/apac";
 
 type CaptureRequestBody = {
   orderID?: string;
@@ -49,7 +50,22 @@ export async function POST(request: Request) {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
   }, 0);
-  const discountAmount = promo ? promoDiscountUSD(toAppliedPromo(promo), basePrice) : 0;
+  // basePrice and the whole order are in SGD (PayPal's charge currency), so
+  // the discount is already in the right currency.
+  const discountAmount = promo ? promoDiscount(toAppliedPromo(promo), basePrice) : 0;
+
+  // Member orders were checked at create-order; record the verified member ID
+  // (never the one typed in the browser). If the check lapsed in between, the
+  // payment has already gone through, so keep the order and log it for review.
+  const isMemberOrder = tickets.some((ticket) => ticket.isMember);
+  const verification = isMemberOrder
+    ? await getMemberVerification(verificationIdFrom(request))
+    : null;
+  if (isMemberOrder && !verification) {
+    console.warn(`PayPal order ${body.orderID}: member price paid without a usable APAC verification`);
+  }
+  const memberIdFor = (ticket: Required<RegistrationFields>) =>
+    ticket.isMember ? (verification?.memberId ?? ticket.memberId.trim()) : null;
 
   const supabase = getSupabaseServerClient();
   const { data: order, error: orderError } = await supabase
@@ -62,7 +78,7 @@ export async function POST(request: Request) {
       // The amount PayPal's own capture response confirms was charged —
       // the authoritative source, not a recomputed guess.
       amount: capture.amount,
-      currency: capture.currency ?? "USD",
+      currency: capture.currency ?? "SGD",
       payment_provider: "paypal",
       payment_status: "paid",
       payment_reference: body.orderID,
@@ -87,6 +103,9 @@ export async function POST(request: Request) {
   if (promo) {
     await redeemPromoCode(promo.code);
   }
+  if (verification) {
+    await consumeVerification(verification.id, order.id);
+  }
 
   const { data: insertedTickets, error: ticketsInsertError } = await supabase
     .from("tickets")
@@ -100,7 +119,7 @@ export async function POST(request: Request) {
         company: ticket.company!.trim(),
         ticket_type: ticket.ticketType!.trim(),
         is_member: Boolean(ticket.isMember),
-        member_id: ticket.isMember ? ticket.memberId!.trim() : null,
+        member_id: memberIdFor(ticket),
       }))
     )
     .select("ticket_code, email, full_name");
@@ -135,7 +154,7 @@ export async function POST(request: Request) {
     order: {
       provider: "paypal",
       amount: capture.amount ?? "unknown",
-      currency: capture.currency ?? "USD",
+      currency: capture.currency ?? "SGD",
       paymentReference: body.orderID,
       quantity: tickets.length,
       promoCode: promo?.code ?? null,
@@ -148,7 +167,7 @@ export async function POST(request: Request) {
       company: ticket.company!.trim(),
       ticketCode: insertedTickets[index]?.ticket_code ?? "unknown",
       isMember: Boolean(ticket.isMember),
-      memberId: ticket.isMember ? ticket.memberId!.trim() : null,
+      memberId: memberIdFor(ticket),
     })),
   });
 

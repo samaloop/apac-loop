@@ -195,12 +195,12 @@ export default function Home() {
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-6 pt-8 pl-28 sm:pl-44 md:pl-14">
-            <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer" className="flex flex-col text-xs">
+            <a href="https://apacoaches.org/" target="_blank" rel="noopener noreferrer" className="flex flex-col text-xs transition-colors hover:text-(--brand-yellow)">
               <span className="text-white/80">Presented by</span>
               <span className="font-bold">{event.organizer}</span>
             </a>
             <span className="h-8 w-px bg-white/50" aria-hidden />
-            <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-xs">
+            <a href="https://www.loop-indonesia.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-xs transition-opacity hover:opacity-75">
               <span className="text-white/80">Official Local Partner</span>
               <Image src="/images/Logo-loop.webp" alt="Loop Institute of Coaching" width={200} height={68} className="h-8 w-auto" />
             </a>
@@ -240,7 +240,7 @@ export default function Home() {
             </p>
             <Link
               href="/about"
-              className="mt-2 flex w-fit items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
+              className="link-arrow mt-2 flex w-fit items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
             >
               Discover the experience
               <span aria-hidden>→</span>
@@ -345,7 +345,7 @@ export default function Home() {
                 <Link
                   key={day.label}
                   href="/agenda"
-                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 border-b border-(--brand-text)/60 py-8 sm:gap-10"
+                  className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 border-b border-(--brand-text)/60 py-8 sm:gap-10"
                 >
                   <div>
                     <p className="text-xs font-bold uppercase text-(--brand-text)">{day.label}</p>
@@ -355,7 +355,7 @@ export default function Home() {
                     <p className="text-xl font-bold text-(--brand-ink) sm:text-2xl">{day.title}</p>
                     <p className="mt-1 text-sm leading-6">{day.body}</p>
                   </div>
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-ink) text-(--brand-ink)" aria-hidden>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-ink) text-(--brand-ink) transition-colors group-hover:bg-(--brand-blue) group-hover:text-white" aria-hidden>
                     →
                   </span>
                 </Link>
@@ -400,7 +400,7 @@ export default function Home() {
               href={venue.mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-bold text-(--brand-ink)"
+              className="btn-white flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-bold text-(--brand-ink)"
             >
               View Location
             </a>
@@ -453,8 +453,8 @@ export default function Home() {
                   href="/register"
                   className={`flex h-12 w-full max-w-56 items-center justify-center rounded-full text-sm font-bold ${
                     ticket.featured
-                      ? "bg-(--brand-yellow) text-(--brand-ink)"
-                      : "border-2 border-(--brand-ink) text-(--brand-ink)"
+                      ? "btn-yellow-on-dark bg-(--brand-yellow) text-(--brand-ink)"
+                      : "btn-outline border-2 border-(--brand-ink) text-(--brand-ink)"
                   }`}
                 >
                   Register Interest
@@ -487,7 +487,7 @@ export default function Home() {
           </div>
           <Link
             href="/sponsors"
-            className="flex items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
+            className="link-arrow flex items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
           >
             Explore partnership opportunities
             <span aria-hidden>→</span>
@@ -510,7 +510,7 @@ export default function Home() {
               href={helpWhatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex w-fit items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
+              className="link-arrow flex w-fit items-center gap-2 border-b-2 border-(--brand-ink) pb-1 text-sm font-bold text-(--brand-ink)"
             >
               Contact the conference team
               <span aria-hidden>→</span>
@@ -519,7 +519,7 @@ export default function Home() {
           <div className="flex flex-col border-t border-(--brand-text)/60">
             {faqs.map((faq, i) => (
               <details key={faq.question} open={i === 0} className="group border-b border-(--brand-text)/60 py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-(--brand-ink)">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-(--brand-ink) decoration-(--brand-coral) decoration-2 underline-offset-4 hover:underline">
                   {faq.question}
                   <span className="text-xl transition-transform group-open:rotate-45" aria-hidden>
                     +
@@ -548,7 +548,7 @@ export default function Home() {
           </p>
           <RegisterLink
             href="/register"
-            className="flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) px-10 text-sm font-bold text-(--brand-ink)"
+            className="btn-yellow-on-dark flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) px-10 text-sm font-bold text-(--brand-ink)"
           >
             Register Now
           </RegisterLink>

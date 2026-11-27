@@ -14,7 +14,7 @@ export type PaymentMethod = {
   provider: "xendit" | "paypal";
   label: string;
   description: string;
-  currency: "IDR" | "USD";
+  currency: "IDR" | "SGD";
   fee: PaymentMethodFee;
   // Text badges (bank/wallet short names, "QRIS") — no official logo source
   // for these Indonesia-specific brands, so styled text stands in for them.
@@ -70,8 +70,10 @@ export const paymentMethods: PaymentMethod[] = [
     provider: "paypal",
     label: "PayPal",
     description: "Pay with a card or your PayPal balance",
-    currency: "USD",
-    fee: { type: "percent", rate: 0.044, fixed: 0.3 },
+    currency: "SGD",
+    // PayPal's cross-border %% plus its per-transaction fixed fee in SGD
+    // (public rate card — confirm against the live PayPal dashboard).
+    fee: { type: "percent", rate: 0.044, fixed: 0.5 },
     cardNetworks: true,
   },
 ];
@@ -85,6 +87,7 @@ export function calculateFee(method: PaymentMethod, basePrice: number): number {
     return method.fee.amount;
   }
   const raw = basePrice * method.fee.rate + method.fee.fixed;
+  // Rupiah has no cents; SGD is rounded to two decimals.
   return method.currency === "IDR" ? Math.round(raw) : Math.round(raw * 100) / 100;
 }
 

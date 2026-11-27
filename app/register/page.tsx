@@ -5,13 +5,34 @@ import PageHero from "../components/PageHero";
 import RegistrationForm from "../components/RegistrationForm";
 import { registrationOpen, REGISTRATION_CLOSED_LABEL } from "../data/registration";
 import { helpWhatsAppUrl } from "../data/event";
+import { getSgdToIdrRate } from "@/lib/fx";
+import { cookies } from "next/headers";
+import { VERIFICATION_COOKIE, getMemberVerification, type MemberVerification } from "@/lib/apac";
+
+// The membership confirmed in this browser (after "Confirm APAC membership"),
+// if still usable. A lookup failure just means "not verified".
+async function loadMemberVerification(): Promise<MemberVerification | null> {
+  try {
+    const id = (await cookies()).get(VERIFICATION_COOKIE)?.value;
+    return await getMemberVerification(id);
+  } catch (error) {
+    console.error("Failed to load APAC verification", error);
+    return null;
+  }
+}
 
 export const metadata: Metadata = {
   title: "Register | APAC Coaching Conference 2027",
   description: "Register for APAC Coaching Conference 2027.",
 };
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  // Same cached rate the Xendit route charges with, so the shown IDR total matches.
+  const { rate: idrRate } = await getSgdToIdrRate();
+  const verification = registrationOpen ? await loadMemberVerification() : null;
+  const memberVerification = verification
+    ? { memberId: verification.memberId, expires: verification.expires }
+    : null;
   return (
     <div className="flex flex-col bg-(--brand-cream) text-(--brand-ink)">
       <PageHero
@@ -28,7 +49,7 @@ export default function RegisterPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 pt-12 pb-20">
         {registrationOpen ? (
           <Suspense>
-            <RegistrationForm />
+            <RegistrationForm idrRate={idrRate} memberVerification={memberVerification} />
           </Suspense>
         ) : (
           <div className="flex flex-col gap-3 border-2 border-(--brand-blue) bg-white px-6 py-10 text-center sm:px-12">

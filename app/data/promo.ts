@@ -10,26 +10,27 @@ export type AppliedPromo = {
 
 export const PROMO_DISCOUNT_LABELS: Record<PromoDiscountType, string> = {
   percent: "Percentage (%) off the ticket subtotal",
-  fixed: "Fixed amount (USD) off the whole order",
+  fixed: "Fixed amount (SGD) off the whole order",
 };
 
 export function normalizePromoCode(code: string): string {
   return code.trim().toUpperCase();
 }
 
-// Discount in USD on the ticket subtotal (before the payment fee, which is
-// then computed on the discounted subtotal). Never more than the subtotal.
-export function promoDiscountUSD(promo: AppliedPromo | null, subtotalUSD: number): number {
+// Discount in SGD (the base currency) on the ticket subtotal, before the
+// payment fee (which is then computed on the discounted subtotal). A fixed
+// discount value is therefore in SGD. Never more than the subtotal.
+export function promoDiscount(promo: AppliedPromo | null, subtotal: number): number {
   if (!promo) return 0;
   const raw =
     promo.discountType === "percent"
-      ? (subtotalUSD * promo.discountValue) / 100
+      ? (subtotal * promo.discountValue) / 100
       : promo.discountValue;
-  return Math.min(subtotalUSD, Math.round(raw * 100) / 100);
+  return Math.min(subtotal, Math.round(raw * 100) / 100);
 }
 
 export function describePromo(promo: AppliedPromo): string {
   return promo.discountType === "percent"
     ? `${promo.discountValue}% off`
-    : `$${promo.discountValue.toFixed(2)} off`;
+    : `S$${promo.discountValue.toFixed(2)} off`;
 }

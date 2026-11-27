@@ -62,7 +62,7 @@ export default function Navbar() {
           <NavLinks pathname={pathname} />
           <RegisterLink
             href="/register"
-            className="flex h-12 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink) transition-opacity hover:opacity-90"
+            className="btn-yellow-on-dark flex h-12 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink)"
           >
             Register now
           </RegisterLink>
@@ -87,7 +87,7 @@ export default function Navbar() {
           <RegisterLink
             href="/register"
             onClick={() => setIsMenuOpen(false)}
-            className="mt-3 flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) text-sm font-bold uppercase text-(--brand-ink)"
+            className="btn-yellow-on-dark mt-3 flex h-12 items-center justify-center rounded-full bg-(--brand-yellow) text-sm font-bold uppercase text-(--brand-ink)"
           >
             Register now
           </RegisterLink>

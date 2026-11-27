@@ -135,3 +135,92 @@ h2 {
 :where(a, button):active {
   transform: translateY(1px);
 }
+
+/* ------------------------------------------------------------------
+   Interactive states: pointer cursor and hover colours, site-wide.
+   ------------------------------------------------------------------ */
+
+/* Tailwind v4's reset gives buttons the plain arrow cursor. Restore the
+   pointing hand on everything clickable (links already have it). */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="radio"],
+  summary,
+  select:not(:disabled),
+  label:has(input[type="radio"]:not(:disabled)),
+  label:has(input[type="checkbox"]:not(:disabled)),
+  input[type="radio"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Pill buttons. Deliberately unlayered so the hover colours win over the
+   Tailwind bg-/text-/border- utilities already on each element. Disabled
+   buttons and the closed-registration placeholder (aria-disabled) stay inert.
+     .btn-yellow         yellow on a light ground  -> blue, white text
+     .btn-yellow-on-dark yellow on a blue ground   -> white, blue text
+     .btn-outline        blue outline              -> filled blue, white text
+     .btn-white          white on a blue ground    -> yellow, blue text */
+:is(.btn-yellow, .btn-yellow-on-dark, .btn-outline, .btn-white) {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+:is(.btn-yellow, .btn-yellow-on-dark, .btn-outline, .btn-white):not(:disabled):not([aria-disabled="true"]):hover {
+  box-shadow: 0 8px 18px -8px rgb(0 17 44 / 0.5);
+}
+
+.btn-yellow:not(:disabled):not([aria-disabled="true"]):hover,
+.btn-outline:not(:disabled):not([aria-disabled="true"]):hover {
+  background-color: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: #fff;
+}
+
+.btn-yellow-on-dark:not(:disabled):not([aria-disabled="true"]):hover {
+  background-color: #fff;
+  color: var(--brand-ink);
+}
+
+.btn-white:not(:disabled):not([aria-disabled="true"]):hover {
+  background-color: var(--brand-yellow);
+  color: var(--brand-ink);
+}
+
+/* Text links with an arrow: the underline turns coral, the arrow nudges. */
+.link-arrow {
+  transition: border-color 160ms ease;
+}
+
+.link-arrow:hover {
+  border-color: var(--brand-coral);
+}
+
+.link-arrow > [aria-hidden] {
+  transition: transform 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.btn-yellow, .btn-yellow-on-dark, .btn-outline, .btn-white):not(:disabled):not([aria-disabled="true"]):hover {
+    transform: translateY(-2px);
+  }
+
+  :is(.btn-yellow, .btn-yellow-on-dark, .btn-outline, .btn-white):not(:disabled):not([aria-disabled="true"]):hover:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .link-arrow:hover > [aria-hidden] {
+    transform: translateX(4px);
+  }
+}

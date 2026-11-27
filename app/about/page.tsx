@@ -81,7 +81,7 @@ export default function AboutPage() {
             </div>
             <Link
               href="/agenda"
-              className="flex h-16 w-fit items-center rounded-full bg-(--brand-yellow) px-10 text-lg font-bold uppercase sm:h-24 sm:px-14 sm:text-2xl"
+              className="btn-yellow flex h-16 w-fit items-center rounded-full bg-(--brand-yellow) px-10 text-lg font-bold uppercase sm:h-24 sm:px-14 sm:text-2xl"
             >
               Explore the agenda
             </Link>

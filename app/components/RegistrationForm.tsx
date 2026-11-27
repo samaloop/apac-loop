@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -18,13 +18,12 @@ import {
   getPricingTier,
   tierPriceFor,
   DEFAULT_TIER_ID,
-  USD_TO_IDR_RATE,
-  formatIDR,
-  formatSGDApprox,
-  idrToUSD,
+  sgdToIDR,
+  formatSGD,
+  methodAmountToSGD,
 } from "@/app/data/pricing";
 import { helpWhatsAppUrl } from "@/app/data/event";
-import { promoDiscountUSD, describePromo, type AppliedPromo } from "@/app/data/promo";
+import { promoDiscount, describePromo, type AppliedPromo } from "@/app/data/promo";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
 import { countries, DEFAULT_DIAL_COUNTRY } from "@/app/data/countries";
 
@@ -47,7 +46,7 @@ type Attendee = {
 type TicketKind = "member" | "general" | "group";
 
 const TICKET_OPTIONS: { kind: TicketKind; name: string; audience: string }[] = [
-  { kind: "member", name: "APAC Member", audience: "Membership will be verified" },
+  { kind: "member", name: "APAC Member", audience: "Confirm by logging in to your APAC account" },
   { kind: "general", name: "General Admission", audience: "For coaches, leaders and changemakers" },
   { kind: "group", name: "Group Pass", audience: "For teams learning together" },
 ];
@@ -97,7 +96,7 @@ const paypalOptions: ReactPayPalScriptOptions = {
     (IS_PAYPAL_LIVE
       ? process.env.NEXT_PUBLIC_LIVE_PAYPAL_CLIENT_ID
       : process.env.NEXT_PUBLIC_DEMO_PAYPAL_CLIENT_ID) ?? "",
-  currency: "USD",
+  currency: "SGD",
   intent: "capture",
   components: "buttons",
 };
@@ -114,7 +113,14 @@ type TicketPayload = {
   memberId: string;
 };
 
-function toPayload(attendees: Attendee[], kind: TicketKind, tierId: string): TicketPayload[] {
+// The member ID always comes from the confirmed APAC membership; the server
+// ignores it anyway and uses its own verification record.
+function toPayload(
+  attendees: Attendee[],
+  kind: TicketKind,
+  tierId: string,
+  verifiedMemberId: string
+): TicketPayload[] {
   return attendees.map((attendee) => ({
     name: `${attendee.firstName.trim()} ${attendee.lastName.trim()}`.trim(),
     email: attendee.email,
@@ -124,50 +130,79 @@ function toPayload(attendees: Attendee[], kind: TicketKind, tierId: string): Tic
     company: attendee.company,
     ticketType: tierId,
     isMember: kind === "member",
-    memberId: kind === "member" ? attendee.memberId : "",
+    memberId: kind === "member" ? verifiedMemberId : "",
   }));
 }
 
 // Ticket prices come from the current pricing tier, using the Member price
-// for an APAC Member ticket (no membership lookup exists yet — the discount
-// is applied immediately and reconciled manually later). Xendit needs IDR,
-// so the USD tier total is converted with a dummy placeholder exchange rate.
-function basePriceUSDFor(tickets: TicketPayload[]): number {
+// for an APAC Member ticket (allowed by the server only with a confirmed APAC
+// membership, see lib/apac.ts). Prices are in SGD
+// (the base currency); each provider's charge is converted from it below.
+function basePriceSGDFor(tickets: TicketPayload[]): number {
   return tickets.reduce((sum, ticket) => {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, ticket.isMember) : sum;
   }, 0);
 }
 
-function toMethodCurrency(method: PaymentMethod, usd: number): number {
-  return method.currency === "IDR" ? Math.round(usd * USD_TO_IDR_RATE) : usd;
+// Convert an SGD amount into what the method actually charges: IDR for Xendit,
+// SGD (unchanged) for PayPal. Mirrors the server (app/api/.../route.ts).
+function toMethodCurrency(method: PaymentMethod, sgd: number, rate: number): number {
+  return method.currency === "IDR" ? sgdToIDR(sgd, rate) : sgd;
 }
 
-// Ticket subtotal before any promo code, in the method's currency.
-function subtotalFor(method: PaymentMethod, tickets: TicketPayload[]): number {
-  return toMethodCurrency(method, basePriceUSDFor(tickets));
+// The review-step price breakdown, every line in SGD (the base currency),
+// plus the exact amount the chosen provider will actually charge (SGD via
+// PayPal, IDR via Xendit).
+// The fee is computed in the charge currency, so its SGD figure is converted
+// back and is approximate.
+function breakdownFor(
+  method: PaymentMethod,
+  tickets: TicketPayload[],
+  promo: AppliedPromo | null,
+  rate: number
+) {
+  const subtotalSGD = basePriceSGDFor(tickets);
+  const promoSGD = promoDiscount(promo, subtotalSGD);
+  const feeSGD = methodAmountToSGD(
+    calculateFee(method, basePriceFor(method, tickets, promo, rate)),
+    method.currency,
+    rate
+  );
+  const chargeTotal = calculateTotal(method, basePriceFor(method, tickets, promo, rate));
+  return {
+    subtotalSGD,
+    promoSGD,
+    feeSGD,
+    totalSGD: subtotalSGD - promoSGD + feeSGD,
+    chargeTotal,
+    currency: method.currency,
+  };
 }
 
 // What the payment fee and total are computed on — the subtotal minus the
-// promo discount, converted the same way the server does (USD first, then
-// IDR) so the preview matches the amount actually charged.
+// promo discount (both in SGD), converted to the method's currency the same
+// way the server does, so the preview matches the amount actually charged.
 function basePriceFor(
   method: PaymentMethod,
   tickets: TicketPayload[],
-  promo: AppliedPromo | null
+  promo: AppliedPromo | null,
+  rate: number
 ): number {
-  const subtotalUSD = basePriceUSDFor(tickets);
-  return toMethodCurrency(method, subtotalUSD - promoDiscountUSD(promo, subtotalUSD));
+  const subtotalSGD = basePriceSGDFor(tickets);
+  return toMethodCurrency(method, subtotalSGD - promoDiscount(promo, subtotalSGD), rate);
 }
 
-function formatAmount(amount: number, currency: "IDR" | "USD"): string {
+function formatAmount(amount: number, currency: "IDR" | "SGD"): string {
   if (currency === "IDR") {
     return `Rp ${Math.round(amount).toLocaleString("id-ID")}`;
   }
-  return `$${amount.toFixed(2)}`;
+  return `S$ ${amount.toFixed(2)}`;
 }
 
-function attendeeMissingFields(attendee: Attendee, kind: TicketKind): string[] {
+const MEMBERSHIP_LABEL = "APAC membership";
+
+function attendeeMissingFields(attendee: Attendee, kind: TicketKind, memberVerified: boolean): string[] {
   const missing = fields
     .filter(({ key }) => {
       if (key === "email") return !EMAIL_PATTERN.test(attendee.email.trim());
@@ -175,11 +210,29 @@ function attendeeMissingFields(attendee: Attendee, kind: TicketKind): string[] {
       return attendee[key].trim() === "";
     })
     .map(({ label }) => label);
-  if (kind === "member" && !attendee.memberId.trim()) {
-    missing.push("APAC Member ID");
+  if (kind === "member" && !memberVerified) {
+    missing.push(MEMBERSHIP_LABEL);
   }
   return missing;
 }
+
+// Result of the APAC check, from /api/apac/callback's ?member= redirect.
+const MEMBER_MESSAGES: Record<string, { ok: boolean; text: string }> = {
+  verified: { ok: true, text: "Your APAC membership is confirmed." },
+  inactive: {
+    ok: false,
+    text: "We couldn't find an active APAC membership on that account. You can renew on apacoaches.org, or register with a General Admission ticket.",
+  },
+  used: { ok: false, text: "This APAC membership has already been used to register." },
+  expired: { ok: false, text: "The confirmation took too long or was already used. Please confirm your membership again." },
+  invalid: { ok: false, text: "We couldn't confirm your membership. Please try again from this page." },
+  error: { ok: false, text: "Membership confirmation is unavailable right now. Please try again later or contact us on WhatsApp." },
+};
+
+// The form is saved here before leaving for apacoaches.org and restored on return.
+const DRAFT_KEY = "apac-register-draft";
+
+type Draft = { kind: TicketKind; attendees: Attendee[]; consent: boolean; step: number };
 
 const xenditMethods = paymentMethods.filter((method) => method.provider === "xendit");
 const paypalMethods = paymentMethods.filter((method) => method.provider === "paypal");
@@ -206,10 +259,10 @@ function PillButton({
     <button
       type="button"
       {...props}
-      className={`flex h-16 w-full items-center justify-center rounded-full px-8 text-xl font-bold transition-opacity disabled:cursor-not-allowed disabled:opacity-50 sm:h-[74px] sm:text-2xl ${
+      className={`flex h-16 w-full items-center justify-center rounded-full px-8 text-xl font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:h-[74px] sm:text-2xl ${
         variant === "primary"
-          ? "bg-(--brand-yellow) text-(--brand-ink) hover:opacity-90"
-          : "border border-(--brand-blue) bg-white text-(--brand-ink) hover:bg-(--brand-tint)"
+          ? "btn-yellow bg-(--brand-yellow) text-(--brand-ink)"
+          : "btn-outline border border-(--brand-blue) bg-white text-(--brand-ink)"
       }`}
     >
       {children}
@@ -266,11 +319,20 @@ async function createPayPalOrder(
   return data.id;
 }
 
-export default function RegistrationForm() {
+export default function RegistrationForm({
+  idrRate,
+  memberVerification,
+}: {
+  idrRate: number;
+  // Confirmed APAC membership for this browser (server-checked), or null.
+  memberVerification: { memberId: string; expires: string } | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tierId = getPricingTier(searchParams.get("tier") ?? "")?.id ?? DEFAULT_TIER_ID;
   const tier = getPricingTier(tierId)!;
+  const memberMessage = MEMBER_MESSAGES[searchParams.get("member") ?? ""] ?? null;
+  const memberVerified = memberVerification !== null;
 
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<TicketKind>("general");
@@ -285,12 +347,45 @@ export default function RegistrationForm() {
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
+  // SGD→IDR rate for Xendit totals; replaced if the server reports a newer one.
+  const [rate, setRate] = useState(idrRate);
 
-  const tickets = toPayload(attendees, kind, tierId);
+  const tickets = toPayload(attendees, kind, tierId, memberVerification?.memberId ?? "");
   const invalidAttendees = attendees
-    .map((attendee, index) => ({ index, missing: attendeeMissingFields(attendee, kind) }))
+    .map((attendee, index) => ({ index, missing: attendeeMissingFields(attendee, kind, memberVerified) }))
     .filter(({ missing }) => missing.length > 0);
   const detailsValid = invalidAttendees.length === 0 && consent;
+
+  // Back from apacoaches.org (?member=…): restore what was typed before leaving.
+  useEffect(() => {
+    if (!searchParams.get("member")) return;
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      sessionStorage.removeItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Draft;
+      /* eslint-disable react-hooks/set-state-in-effect -- one-time restore from sessionStorage after a redirect */
+      setKind(draft.kind);
+      setAttendees(draft.attendees.length > 0 ? draft.attendees : [emptyAttendee()]);
+      setConsent(draft.consent);
+      setStep(draft.step);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    } catch {
+      // Storage blocked or draft unreadable: start fresh.
+    }
+  }, [searchParams]);
+
+  // "Confirm APAC membership": save the form, then go via our start route to
+  // the APAC login/verify page. We come back to /register?member=<result>.
+  function confirmMembership() {
+    try {
+      const draft: Draft = { kind, attendees, consent, step };
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      // Storage blocked: the details will need retyping, the check still works.
+    }
+    window.location.assign(`/api/apac/start?tier=${encodeURIComponent(tierId)}`);
+  }
 
   function chooseKind(next: TicketKind) {
     setKind(next);
@@ -395,9 +490,16 @@ export default function RegistrationForm() {
           tickets,
           method: selectedMethod.id,
           promoCode: appliedPromo?.code,
+          idrRate: rate,
         }),
       });
-      const result = (await response.json()) as { invoiceUrl?: string; error?: string };
+      const result = (await response.json()) as { invoiceUrl?: string; error?: string; idrRate?: number };
+      if (response.status === 409 && result.error === "rate_changed" && result.idrRate) {
+        setRate(result.idrRate);
+        setError("The exchange rate was just updated. Please review the new total and pay again.");
+        setXenditLoading(false);
+        return;
+      }
       if (!result.invoiceUrl) {
         setError(result.error ?? "Failed to start Xendit payment.");
         setXenditLoading(false);
@@ -410,7 +512,7 @@ export default function RegistrationForm() {
     }
   }
 
-  const priceUSDFor = (option: TicketKind) =>
+  const priceSGDFor = (option: TicketKind) =>
     option === "member" ? tier.memberPrice : tier.nonMemberPrice;
   const selectedOption = TICKET_OPTIONS.find((option) => option.kind === kind)!;
 
@@ -450,8 +552,8 @@ export default function RegistrationForm() {
                       role="radio"
                       aria-checked={selected}
                       onClick={() => chooseKind(option.kind)}
-                      className={`flex items-center gap-5 border-2 border-(--brand-blue) px-5 py-6 text-left sm:gap-8 sm:px-9 sm:py-8 ${
-                        selected ? "bg-(--brand-tint)" : "bg-white"
+                      className={`flex items-center gap-5 border-2 border-(--brand-blue) px-5 py-6 text-left transition-colors sm:gap-8 sm:px-9 sm:py-8 ${
+                        selected ? "bg-(--brand-tint)" : "bg-white hover:bg-(--brand-tint)/60"
                       }`}
                     >
                       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-(--brand-blue)">
@@ -462,10 +564,7 @@ export default function RegistrationForm() {
                         <span className="text-sm sm:text-lg">{option.audience}</span>
                       </span>
                       <span className="shrink-0 text-right text-lg font-bold tracking-tight sm:text-3xl">
-                        {formatIDR(priceUSDFor(option.kind))}
-                        <span className="block text-xs font-medium tracking-normal sm:text-sm">
-                          {formatSGDApprox(priceUSDFor(option.kind))}
-                        </span>
+                        {formatSGD(priceSGDFor(option.kind))}
                         {option.kind === "group" && (
                           <span className="block text-xs font-medium tracking-normal sm:text-sm">per person</span>
                         )}
@@ -488,7 +587,7 @@ export default function RegistrationForm() {
                       type="button"
                       onClick={() => setGroupSize(attendees.length - 1)}
                       disabled={attendees.length <= MIN_GROUP_SIZE}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-blue) text-xl font-bold disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-blue) text-xl font-bold transition-colors enabled:hover:bg-(--brand-blue) enabled:hover:text-white disabled:opacity-40"
                       aria-label="Remove a person"
                     >
                       −
@@ -498,7 +597,7 @@ export default function RegistrationForm() {
                       type="button"
                       onClick={() => setGroupSize(attendees.length + 1)}
                       disabled={attendees.length >= MAX_TICKETS_PER_ORDER}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-blue) text-xl font-bold disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-(--brand-blue) text-xl font-bold transition-colors enabled:hover:bg-(--brand-blue) enabled:hover:text-white disabled:opacity-40"
                       aria-label="Add a person"
                     >
                       +
@@ -516,7 +615,7 @@ export default function RegistrationForm() {
           {step === 1 && (
             <>
               {attendees.map((attendee, index) => {
-                const missing = showErrors ? attendeeMissingFields(attendee, kind) : [];
+                const missing = showErrors ? attendeeMissingFields(attendee, kind, memberVerified) : [];
                 return (
                   <fieldset key={index} className="flex flex-col gap-6">
                     {attendees.length > 1 && (
@@ -608,17 +707,35 @@ export default function RegistrationForm() {
                         );
                       })}
                       {kind === "member" && (
-                        <label className="flex flex-col gap-3">
-                          <span className="text-lg font-bold sm:text-2xl">APAC Member ID *</span>
-                          <input
-                            type="text"
-                            value={attendee.memberId}
-                            onChange={(event) => updateAttendee(index, "memberId", event.target.value)}
-                            aria-invalid={missing.includes("APAC Member ID")}
-                            className={`${inputClass} ${missing.includes("APAC Member ID") ? "border-2 border-[#c22f2f]" : ""}`}
-                          />
-                          <span className="text-sm">Membership will be verified by our team after registration.</span>
-                        </label>
+                        <div
+                          className={`flex flex-col gap-4 border-2 px-5 py-5 md:col-span-2 ${
+                            memberVerified
+                              ? "border-(--brand-blue) bg-(--brand-tint)"
+                              : missing.includes(MEMBERSHIP_LABEL)
+                                ? "border-[#c22f2f] bg-white"
+                                : "border-dashed border-(--brand-blue)/50 bg-white"
+                          }`}
+                        >
+                          <span className="text-lg font-bold sm:text-2xl">APAC membership *</span>
+                          {memberVerification ? (
+                            <p className="text-base sm:text-lg">
+                              <span className="font-bold">✓ Confirmed</span> · Member ID {memberVerification.memberId}
+                            </p>
+                          ) : (
+                            <>
+                              <p className="text-base sm:text-lg">
+                                Log in to your apacoaches.org account to confirm your membership. Your details here are
+                                kept while you&apos;re away.
+                              </p>
+                              <div className="sm:max-w-sm">
+                                <PillButton onClick={confirmMembership}>Confirm APAC membership</PillButton>
+                              </div>
+                            </>
+                          )}
+                          {memberMessage && !memberMessage.ok && !memberVerified && (
+                            <p className="text-sm font-medium text-[#c22f2f] sm:text-base">{memberMessage.text}</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </fieldset>
@@ -666,10 +783,7 @@ export default function RegistrationForm() {
                   </p>
                 </div>
                 <p className="text-right text-2xl font-bold tracking-tight text-(--brand-yellow-text) sm:text-4xl">
-                  {formatIDR(basePriceUSDFor(tickets))}
-                  <span className="block text-sm font-medium tracking-normal text-white sm:text-base">
-                    {formatSGDApprox(basePriceUSDFor(tickets))}
-                  </span>
+                  {formatSGD(basePriceSGDFor(tickets))}
                 </p>
               </div>
 
@@ -686,10 +800,11 @@ export default function RegistrationForm() {
                 </div>
 
                 <PaymentMethodGroup
-                  title="Pay with PayPal (USD)"
+                  title="Pay with PayPal (SGD)"
                   methods={paypalMethods}
                   tickets={tickets}
                   promo={appliedPromo}
+                  rate={rate}
                   selectedId={selectedMethod?.id ?? null}
                   onSelect={setSelectedMethod}
                 />
@@ -698,6 +813,7 @@ export default function RegistrationForm() {
                   methods={xenditMethods}
                   tickets={tickets}
                   promo={appliedPromo}
+                  rate={rate}
                   selectedId={selectedMethod?.id ?? null}
                   onSelect={setSelectedMethod}
                 />
@@ -714,7 +830,7 @@ export default function RegistrationForm() {
                         type="button"
                         onClick={removePromo}
                         disabled={submitting || xenditLoading}
-                        className="text-sm font-bold underline disabled:opacity-50"
+                        className="text-sm font-bold underline decoration-2 underline-offset-2 transition-colors enabled:hover:decoration-(--brand-coral) disabled:opacity-50"
                       >
                         Remove
                       </button>
@@ -739,7 +855,7 @@ export default function RegistrationForm() {
                         type="button"
                         onClick={applyPromo}
                         disabled={promoLoading || !promoInput.trim()}
-                        className="shrink-0 rounded-full border border-(--brand-blue) px-6 font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                        className="btn-outline shrink-0 rounded-full border border-(--brand-blue) px-6 font-bold disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {promoLoading ? "Checking…" : "Apply"}
                       </button>
@@ -748,60 +864,44 @@ export default function RegistrationForm() {
                   {promoError && <p className="text-sm font-medium text-[#c22f2f]">{promoError}</p>}
                 </div>
 
-                {selectedMethod && (
-                  <div className="flex flex-col gap-2 bg-(--brand-cream) p-5 text-base">
-                    <div className="flex items-center justify-between">
-                      <span>Ticket price × {tickets.length}</span>
-                      <span>{formatAmount(subtotalFor(selectedMethod, tickets), selectedMethod.currency)}</span>
-                    </div>
-                    {appliedPromo && (
-                      <div className="flex items-center justify-between text-[#c22f2f]">
-                        <span>Promo ({appliedPromo.code})</span>
-                        <span>
-                          −
-                          {formatAmount(
-                            subtotalFor(selectedMethod, tickets) -
-                              basePriceFor(selectedMethod, tickets, appliedPromo),
-                            selectedMethod.currency
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span>Payment fee</span>
-                      <span>
-                        {formatAmount(
-                          calculateFee(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo)),
-                          selectedMethod.currency
+                {selectedMethod &&
+                  (() => {
+                    const b = breakdownFor(selectedMethod, tickets, appliedPromo, rate);
+                    return (
+                      <div className="flex flex-col gap-2 bg-(--brand-cream) p-5 text-base">
+                        <div className="flex items-center justify-between">
+                          <span>Ticket price × {tickets.length}</span>
+                          <span>{formatSGD(b.subtotalSGD)}</span>
+                        </div>
+                        {appliedPromo && (
+                          <div className="flex items-center justify-between text-[#c22f2f]">
+                            <span>Promo ({appliedPromo.code})</span>
+                            <span>−{formatSGD(b.promoSGD)}</span>
+                          </div>
                         )}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between border-t border-(--brand-rule) pt-3">
-                      <span className="font-bold">Total</span>
-                      <span className="text-right text-2xl font-bold">
-                        {formatAmount(
-                          calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo)),
-                          selectedMethod.currency
-                        )}
-                        {selectedMethod.currency === "IDR" && (
-                          <span className="block text-sm font-medium">
-                            {formatSGDApprox(
-                              idrToUSD(
-                                calculateTotal(selectedMethod, basePriceFor(selectedMethod, tickets, appliedPromo))
-                              )
+                        <div className="flex items-center justify-between">
+                          <span>Payment fee</span>
+                          <span>+{formatSGD(b.feeSGD)}</span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between border-t border-(--brand-rule) pt-3">
+                          <span className="font-bold">Total</span>
+                          <span className="text-right text-2xl font-bold">
+                            {formatSGD(b.totalSGD)}
+                            {b.currency === "IDR" && (
+                              <span className="block text-sm font-medium">
+                                You pay {formatAmount(b.chargeTotal, b.currency)}
+                              </span>
                             )}
                           </span>
-                        )}
-                      </span>
-                    </div>
-                    {selectedMethod.currency === "IDR" && (
-                      <p className="text-sm">
-                        SGD shown for reference. You will be charged in IDR; your card’s bank converts the
-                        amount.
-                      </p>
-                    )}
-                  </div>
-                )}
+                        </div>
+                        <p className="text-sm">
+                          {b.currency === "IDR"
+                            ? `Prices are in Singapore Dollars (SGD). Xendit charges the equivalent in Indonesian Rupiah (IDR) at today's rate of S$ 1 = Rp ${rate.toLocaleString("id-ID")} (European Central Bank reference rate); your bank may add a conversion fee.`
+                            : "You pay in Singapore Dollars (SGD) via PayPal."}
+                        </p>
+                      </div>
+                    );
+                  })()}
               </div>
 
               {error && <ErrorNotice>{error}</ErrorNotice>}
@@ -856,6 +956,7 @@ function PaymentMethodGroup({
   methods,
   tickets,
   promo,
+  rate,
   selectedId,
   onSelect,
 }: {
@@ -863,6 +964,7 @@ function PaymentMethodGroup({
   methods: PaymentMethod[];
   tickets: TicketPayload[];
   promo: AppliedPromo | null;
+  rate: number;
   selectedId: string | null;
   onSelect: (method: PaymentMethod) => void;
 }) {
@@ -872,12 +974,14 @@ function PaymentMethodGroup({
       <div className="flex flex-col gap-2">
         {methods.map((method) => {
           const isSelected = selectedId === method.id;
-          const fee = calculateFee(method, basePriceFor(method, tickets, promo));
+          const fee = calculateFee(method, basePriceFor(method, tickets, promo, rate));
           return (
             <label
               key={method.id}
-              className={`flex cursor-pointer flex-col gap-2 border px-4 py-3 ${
-                isSelected ? "border-2 border-(--brand-blue) bg-(--brand-tint)" : "border-(--brand-rule) bg-white"
+              className={`flex cursor-pointer flex-col gap-2 border px-4 py-3 transition-colors ${
+                isSelected
+                  ? "border-2 border-(--brand-blue) bg-(--brand-tint)"
+                  : "border-(--brand-rule) bg-white hover:border-(--brand-blue) hover:bg-(--brand-tint)/40"
               }`}
             >
               <div className="flex items-center justify-between gap-4">
@@ -894,7 +998,7 @@ function PaymentMethodGroup({
                     <p className="text-sm">{method.description}</p>
                   </div>
                 </div>
-                <span className="shrink-0 text-sm">+{formatAmount(fee, method.currency)}</span>
+                <span className="shrink-0 text-sm">+{formatSGD(methodAmountToSGD(fee, method.currency, rate))}</span>
               </div>
               {(method.badges || method.cardNetworks) && (
                 <div className="flex flex-wrap items-center gap-1.5 pl-8">

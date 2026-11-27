@@ -3,16 +3,20 @@ import { registrationOpen } from "@/app/data/registration";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { validateTickets, type RegistrationFields } from "@/lib/validation";
 import { getPaymentMethod, calculateTotal, type PaymentMethodId } from "@/app/data/fees";
-import { getPricingTier, tierPriceFor, USD_TO_IDR_RATE } from "@/app/data/pricing";
-import { promoDiscountUSD, type AppliedPromo } from "@/app/data/promo";
+import { getPricingTier, tierPriceFor, sgdToIDR } from "@/app/data/pricing";
+import { promoDiscount, type AppliedPromo } from "@/app/data/promo";
 import { validatePromoCode } from "@/lib/promo";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { event } from "@/app/data/event";
+import { getSgdToIdrRate } from "@/lib/fx";
+import { checkMemberOrder } from "@/lib/apac";
 
 type CreateInvoiceRequestBody = {
   method?: string;
   tickets?: RegistrationFields[];
   promoCode?: string;
+  // The SGD→IDR rate the buyer saw on the form; must match the current rate.
+  idrRate?: number;
 };
 
 // Best-effort mapping to Xendit's invoice `payment_methods` filter codes, so
@@ -43,6 +47,13 @@ export async function POST(request: Request) {
   const tickets = body.tickets as Required<RegistrationFields>[];
   const buyer = tickets[0];
 
+  // The member price needs a confirmed APAC membership (see lib/apac.ts).
+  const memberCheck = await checkMemberOrder(request, tickets);
+  if ("error" in memberCheck) {
+    return Response.json({ error: memberCheck.error }, { status: 403 });
+  }
+  const verification = memberCheck.verification;
+
   const method = getPaymentMethod(body.method ?? "");
   if (!method || method.provider !== "xendit") {
     return Response.json({ error: "Invalid payment method" }, { status: 400 });
@@ -54,10 +65,9 @@ export async function POST(request: Request) {
   }
 
   // Ticket type is validated (against pricingTiers) by validateTickets above.
-  // Member status is self-declared (no membership lookup exists yet), so the
-  // member price is applied immediately and reconciled manually later; the
-  // USD tier total is converted to IDR via a dummy placeholder exchange rate.
-  const basePriceUSD = tickets.reduce((sum, ticket) => {
+  // Member orders were checked against a confirmed APAC membership above; the
+  // SGD tier total is converted to IDR with the daily ECB rate (lib/fx.ts).
+  const basePriceSGD = tickets.reduce((sum, ticket) => {
     const tier = getPricingTier(ticket.ticketType);
     return tier ? sum + tierPriceFor(tier, Boolean(ticket.isMember)) : sum;
   }, 0);
@@ -70,9 +80,15 @@ export async function POST(request: Request) {
     }
     promo = promoResult.promo;
   }
-  const discountUSD = promoDiscountUSD(promo, basePriceUSD);
-  const discountIDR = Math.round(discountUSD * USD_TO_IDR_RATE);
-  const basePriceIDR = Math.round((basePriceUSD - discountUSD) * USD_TO_IDR_RATE);
+  const discountSGD = promoDiscount(promo, basePriceSGD);
+  // Charge exactly what the buyer saw: if the rate moved since the form loaded,
+  // send the new rate back so they can review the updated total first.
+  const { rate } = await getSgdToIdrRate();
+  if (body.idrRate !== rate) {
+    return Response.json({ error: "rate_changed", idrRate: rate }, { status: 409 });
+  }
+  const discountIDR = sgdToIDR(discountSGD, rate);
+  const basePriceIDR = sgdToIDR(basePriceSGD - discountSGD, rate);
   const total = calculateTotal(method, basePriceIDR);
 
   let invoice;
@@ -109,6 +125,8 @@ export async function POST(request: Request) {
       payment_reference: invoice.id,
       promo_code: promo?.code ?? null,
       discount_amount: discountIDR,
+      fx_rate: rate,
+      apac_verification_id: verification?.id ?? null,
     })
     .select("id")
     .single();
@@ -128,7 +146,8 @@ export async function POST(request: Request) {
       company: ticket.company!.trim(),
       ticket_type: ticket.ticketType!.trim(),
       is_member: Boolean(ticket.isMember),
-      member_id: ticket.isMember ? ticket.memberId!.trim() : null,
+      // The verified APAC member ID, never the one typed in the browser.
+      member_id: ticket.isMember ? (verification?.memberId ?? null) : null,
     }))
   );
 

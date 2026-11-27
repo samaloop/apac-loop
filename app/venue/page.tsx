@@ -93,7 +93,7 @@ export default function VenuePage() {
           </p>
           <RegisterLink
             href="/register"
-            className="flex h-12 w-fit shrink-0 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase"
+            className="btn-yellow flex h-12 w-fit shrink-0 items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase"
           >
             Register now
           </RegisterLink>

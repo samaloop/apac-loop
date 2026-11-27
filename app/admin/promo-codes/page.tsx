@@ -283,11 +283,11 @@ export default function PromoCodesAdminPage() {
             </select>
           </Field>
           <Field
-            label={form.discountType === "percent" ? "Discount (%)" : "Discount (USD)"}
+            label={form.discountType === "percent" ? "Discount (%)" : "Discount (SGD)"}
             hint={
               form.discountType === "percent"
                 ? "1–100. Payment fee is still charged on top."
-                : "Converted to Rupiah for Xendit payments."
+                : "In SGD (the base price). Charged in SGD via PayPal, or converted to IDR for Xendit."
             }
           >
             <input

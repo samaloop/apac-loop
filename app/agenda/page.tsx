@@ -65,7 +65,7 @@ export default function AgendaPage() {
           </div>
           <RegisterLink
             href="/register"
-            className="flex h-12 w-fit items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink)"
+            className="btn-yellow flex h-12 w-fit items-center rounded-full bg-(--brand-yellow) px-7 text-sm font-bold uppercase text-(--brand-ink)"
           >
             Register now
           </RegisterLink>
